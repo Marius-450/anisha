@@ -16,7 +16,7 @@ class Arect(displayio.TileGrid):
     :param height: The height of the rectangle.
     :param fill: The color to fill the rectangle. Can be a hex value for a color or
                  ``None`` for transparent.
-    :param outline: The outline of the rectangle. Must be a hex value for a color
+    :param outline: The outline of the rectangle. Must be a hex value for a color.
     :param stroke: Used for the outline. Will not change the outer bound size set by ``width`` and
                    ``height``.
     :param anim_mode : "vertical", "horizontal" or "circular"
@@ -81,7 +81,7 @@ class Arect(displayio.TileGrid):
                 for p in range(0, self.height):
                     self._conversion_table[n].append((n,p))
         elif self.anim_mode == "vertical":
-            self.n = vertical
+            self.n = self.height
             for n in range(0, self.n):
                 self._conversion_table[n] = []
                 for p in range(0, self.width):
@@ -107,14 +107,19 @@ class Arect(displayio.TileGrid):
         :param color: Color to set.
         """
         self._palette[1] = color
-        for w in range(self.width):
-            for line in range(self.stroke):
-                self._bitmap[w, line] = 1
-                self._bitmap[w, self.height - 1 - line] = 1
-            for _h in range(self.height):
+        if self.anim_mode == "circular":
+            for w in range(self.width):
                 for line in range(self.stroke):
-                    self._bitmap[line, _h] = 1
-                    self._bitmap[self.width - 1 - line, _h] = 1
+                    self._bitmap[w, line] = 1
+                    self._bitmap[w, self.height - 1 - line] = 1
+                for _h in range(self.height):
+                    for line in range(self.stroke):
+                        self._bitmap[line, _h] = 1
+                        self._bitmap[self.width - 1 - line, _h] = 1
+        else:
+            for i in range(self.n):
+                for x,y in self._conversion_table[i]:
+                    self._bitmap[x,y] = 1
         for i in range(2,len(self._palette)):
             self._palette[i] = 0x000000
 
