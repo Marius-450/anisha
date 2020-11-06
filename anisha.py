@@ -213,9 +213,7 @@ class Arect(displayio.TileGrid):
         return self._getitem(index)
 
     def _clean_palette(self):
-        pixels = {}
-        for i in range(0,len(self._palette)):
-            pixels[i] = 0
+        pixels = [0] * len(self._palette)
         for x in range(self.width):
             for y in range(self.height):
                 pixels[self._bitmap[x,y]] += 1
