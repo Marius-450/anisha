@@ -340,12 +340,12 @@ class Apoly(Arect):
 
 class Atriangle(Apoly):
 
-    def __init__(self, x0, y0, x1, y1, x2, y2, *, outline=None, colors=128, closed=True):
+    def __init__(self, x0, y0, x1, y1, x2, y2, *, outline=None, colors=128):
         super().__init__([(x0, y0),(x1, y1),(x2, y2)], outline=outline, colors=colors, closed=True)
 
 
 
 class Aline(Apoly):
 
-    def __init__(self, x0, y0, x1, y1, *, outline=None, colors=128, closed=True):
-        super().__init__([(x0, y0),(x1, y1),(x2, y2)], outline=outline, colors=colors, closed=False)
+    def __init__(self, x0, y0, x1, y1, *, outline=None, colors=128):
+        super().__init__([(x0, y0),(x1, y1)], outline=outline, colors=colors, closed=False)
