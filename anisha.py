@@ -222,3 +222,126 @@ class Arect(displayio.TileGrid):
                 self._palette[i] = 0x000000
 
 
+class Apoly(Arect):
+
+    def __init__(self, points, *, outline=None, colors=128):
+        xs = []
+        ys = []
+        self._conversion_table = {}
+
+        for point in points:
+            xs.append(point[0])
+            ys.append(point[1])
+
+        x_offset = min(xs)
+        y_offset = min(ys)
+
+        # Find the largest and smallest X values to figure out width for bitmap
+        self.width = max(xs) - min(xs) + 1
+        self.height = max(ys) - min(ys) + 1
+
+        self._palette = displayio.Palette(colors)
+        self._palette.make_transparent(0)
+        self._bitmap = displayio.Bitmap(self.width, self.height, colors)
+
+        if outline is not None:
+            # print("outline")
+            self.outline = outline
+            for index, _ in enumerate(points):
+                point_a = points[index]
+                if index == len(points) - 1:
+                    point_b = points[0]
+                else:
+                    point_b = points[index + 1]
+                self._line(
+                    point_a[0] - x_offset,
+                    point_a[1] - y_offset,
+                    point_b[0] - x_offset,
+                    point_b[1] - y_offset,
+                    1,)
+            self.n = len(self._conversion_table)
+        super(Arect, self).__init__(
+            self._bitmap, pixel_shader=self._palette, x=x_offset, y=y_offset
+        )
+
+    # pylint: disable=invalid-name, too-many-locals, too-many-branches
+    def _line(self, x0, y0, x1, y1, color):
+        reverse = False
+        buffer = []
+        if x0 == x1:
+            if y0 > y1:
+                y0, y1 = y1, y0
+                reverse = True
+            for _h in range(y0, y1 + 1):
+                self._bitmap[x0, _h] = color
+                if reverse:
+                    buffer.append((x0,_h))
+                else:
+                    self._conversion_table[len(self._conversion_table)] = [(x0,_h)]
+        elif y0 == y1:
+            if x0 > x1:
+                x0, x1 = x1, x0
+                reverse = True
+            for _w in range(x0, x1 + 1):
+                self._bitmap[_w, y0] = color
+                if reverse:
+                    buffer.append((_w,y0))
+                else:
+                    self._conversion_table[len(self._conversion_table)] = [(_w,y0)]
+        else:
+            steep = abs(y1 - y0) > abs(x1 - x0)
+            if steep:
+                x0, y0 = y0, x0
+                x1, y1 = y1, x1
+
+            if x0 > x1:
+                reverse = True
+                x0, x1 = x1, x0
+                y0, y1 = y1, y0
+
+            dx = x1 - x0
+            dy = abs(y1 - y0)
+
+            err = dx / 2
+
+            if y0 < y1:
+                ystep = 1
+            else:
+                ystep = -1
+
+            for x in range(x0, x1 + 1):
+                if steep:
+                    self._bitmap[y0, x] = color
+                    if reverse:
+                        buffer.append((y0, x))
+                    else:
+                        self._conversion_table[len(self._conversion_table)] = [(y0,x)]
+                else:
+                    self._bitmap[x, y0] = color
+                    if reverse:
+                        buffer.append((x,y0))
+                    else:
+                        self._conversion_table[len(self._conversion_table)] = [(x,y0)]
+                err -= dy
+                if err < 0:
+                    y0 += ystep
+                    err += dx
+        if reverse:
+            while len(buffer) > 0:
+                x,y = buffer.pop()
+                self._conversion_table[len(self._conversion_table)] = [(x,y)]
+
+    def fill(self, color):
+        """
+        Fills the animated pixels with the given color.
+        :param color: Color to set.
+        """
+        self._palette[1] = color
+        for index, points in self._conversion_table.items():
+            for p in points:
+                x = p[0]
+                y = p[1]
+                self._bitmap[x,y] = 1
+
+        for i in range(2,len(self._palette)):
+            self._palette[i] = 0x000000
