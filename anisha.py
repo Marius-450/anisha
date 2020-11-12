@@ -19,10 +19,11 @@ class Arect(displayio.TileGrid):
     :param outline: The outline of the rectangle. Must be a hex value for a color.
     :param stroke: Used for the outline. Will not change the outer bound size set by ``width`` and
                    ``height``.
-    :param anim_mode : "vertical", "horizontal" or "circular"
+    :param anim_mode : "vertical", "horizontal" or "circular". default "circular"
+    :param colors : Number of colors used in the bitmap and palette. default 128.
     """
 
-    def __init__(self, x, y, width, height, *, fill=None, outline=None, stroke=1, anim_mode="circular", colors=16):
+    def __init__(self, x, y, width, height, *, fill=None, outline=None, stroke=1, anim_mode="circular", colors=128):
         self._bitmap = displayio.Bitmap(width, height, colors)
         self._palette = displayio.Palette(colors)
 
@@ -223,11 +224,17 @@ class Arect(displayio.TileGrid):
 
 
 class Apoly(Arect):
-
-    def __init__(self, points, *, outline=None, colors=128):
+    """An animated polygon.
+    :param points: A list of (x, y) tuples of the points
+    :param outline: The outline of the polygon. Must be a hex value for a color
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    :param closed : Boolean indicating if the shape is closed or not.
+    """
+    def __init__(self, points, *, outline=None, colors=128, closed=True):
         xs = []
         ys = []
         self._conversion_table = {}
+        self.closed = closed
 
         for point in points:
             xs.append(point[0])
@@ -247,10 +254,14 @@ class Apoly(Arect):
         if outline is not None:
             # print("outline")
             self.outline = outline
+            self._palette[1] = outline
             for index, _ in enumerate(points):
                 point_a = points[index]
                 if index == len(points) - 1:
-                    point_b = points[0]
+                    if self.closed:
+                        point_b = points[0]
+                    else:
+                        break
                 else:
                     point_b = points[index + 1]
                 self._line(
@@ -260,6 +271,8 @@ class Apoly(Arect):
                     point_b[1] - y_offset,
                     1,)
             self.n = len(self._conversion_table)
+        else:
+            raise RuntimeError("base color must be provided for outline.")
         super(Arect, self).__init__(
             self._bitmap, pixel_shader=self._palette, x=x_offset, y=y_offset
         )
@@ -345,3 +358,16 @@ class Apoly(Arect):
 
         for i in range(2,len(self._palette)):
             self._palette[i] = 0x000000
+
+
+class Atriangle(Apoly):
+
+    def __init__(self, x0, y0, x1, y1, x2, y2, *, outline=None, colors=128, closed=True):
+        super().__init__([(x0, y0),(x1, y1),(x2, y2)], outline=outline, colors=colors, closed=True)
+
+
+
+class Aline(Apoly):
+
+    def __init__(self, x0, y0, x1, y1, *, outline=None, colors=128, closed=True):
+        super().__init__([(x0, y0),(x1, y1),(x2, y2)], outline=outline, colors=colors, closed=False)
