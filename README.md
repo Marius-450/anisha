@@ -29,4 +29,8 @@ Aline is an animated line class. It is an "open polygon" with only 2 points.
 
 Atriangle is an animated triangle shape class.
 
+# Aellipse
+Aellipse is an animated ellipse shape class. It can also be used to draw arcs and circles.
 
+# Acircle
+Acircle is an animated circle shape class.
