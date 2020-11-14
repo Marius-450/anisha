@@ -10,6 +10,13 @@ Still alpha development version.
 The idea is to animate shapes in a displayio environment, as if it was neopixel stripes. It permits to emulate as many strips you want and test animations without physically having to plug anything else. It can also of course be used to add some life in your programs, like a sparkling frame for a clock or a waiting animation during a request / reload ...
 All the shapes are displayio tilegrids and can be moved, hidden, etc. You just have to add it to a group to display it.
 
+## Methods
+
+You can setup a new animation or animate the shape directly from your code without using led_animation :
+*`shape.fill(color)` set all animated pixels of the shape to the color given in hex format, ex : `0xFF0000`
+* `shape. __setitem__(pos, color)` set the pixels to the color given in hex format, ex : `0xFF0000`, individually or using a slice
+
+
 # Arect
 
 Arect is an animated rectangle shape class. 
