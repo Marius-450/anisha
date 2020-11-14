@@ -339,13 +339,31 @@ class Apoly(Arect):
 
 
 class Atriangle(Apoly):
-
+    """An animated triangle.
+    :param x0, y0: First point coordinates
+    :param x1, y1: Second point coordinates
+    :param x2, y2: Third point coordinates
+    :param outline: The outline of the triangle. Must be a hex value for a color
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    """
     def __init__(self, x0, y0, x1, y1, x2, y2, *, outline=None, colors=128):
         super().__init__([(x0, y0),(x1, y1),(x2, y2)], outline=outline, colors=colors, closed=True)
 
 
 
 class Aline(Apoly):
-
+    """An animated line.
+    :param x0, y0: First point coordinates
+    :param x1, y1: Second point coordinates
+    :param outline: The color of the line. Must be a hex value for a color
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    """
     def __init__(self, x0, y0, x1, y1, *, outline=None, colors=128):
         super().__init__([(x0, y0),(x1, y1)], outline=outline, colors=colors, closed=False)
+
+
+
+
+# TODO : ellipses cicles arcs piecharts
+#        regular polygons
+#        points
