@@ -7,6 +7,7 @@
 
 
 import displayio
+import math
 
 class Arect(displayio.TileGrid):
     """An animated rectangle.
@@ -362,6 +363,99 @@ class Aline(Apoly):
         super().__init__([(x0, y0),(x1, y1)], outline=outline, colors=colors, closed=False)
 
 
+class Aellipse(Arect):
+    """An animated ellipse.
+    :param x: x coordinate of the center of the ellipse
+    :param y: y coordinate of the center of the ellipse
+    :param height:
+    :param width:
+    :param start_angle: in degrees, default = 0
+    :param end_angle: in degrees. must be greater than start_angle. default = 360.
+    :param outline: The outline of the ellipse. Must be a hex value for a color
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    """
+    def __init__(self, x, y, width, height, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128):
+        self.width = width
+        self.height = height
+        self._palette = displayio.Palette(colors)
+        self._palette.make_transparent(0)
+        max_size = max(self.width, self.height)
+        # temporarily oversized
+        self._bitmap = displayio.Bitmap(max_size, max_size, colors)
+
+        xs = []
+        ys = []
+
+        self._conversion_table = {}
+        last_point = (-1,-1)
+
+        x_offset = x - (max_size-1)//2
+        y_offset = y - (max_size-1)//2
+        # width = height = max_size
+        print("offset =", x_offset, y_offset)
+
+        if outline is not None:
+            theta = start_angle
+            r = math.radians(angle_offset)
+            self._palette[1] = outline
+            while theta <= end_angle:
+                ax = math.cos(math.radians(theta)) * ((width-1)/2)
+                ay = math.sin(math.radians(theta)) * ((height-1)/2)
+                if angle_offset != 0:
+                    nx = ax * math.cos(r) + ay * math.sin(r)
+                    ny = -ax * math.sin(r) + ay * math.cos(r)
+                    ax = nx
+                    ay = ny
+                ax = math.trunc(ax + max_size/2)
+                ay = math.trunc(ay + max_size/2)
+
+                #debug
+                if ax >= max_size:
+                    ax = max_size-1
+                    print("ax too big !")
+                if ax < 0:
+                    ax = 0
+                    print("ax negative !!!")
+                if ay >= max_size:
+                    ay = max_size -1
+                    print("ay too big !")
+                if ay < 0:
+                    ay = 0
+                    print('ay negative !!!')
+                self._bitmap[ax , ay ] = 1
+                if ax != last_point[0] or ay != last_point[1]:
+                    last_point = (ax, ay)
+                    self._conversion_table[len(self._conversion_table)] = [(ax, ay)]
+                    xs.append(ax)
+                    ys.append(ay)
+                theta += 2
+        else:
+            raise RuntimeError("base color must be provided for outline.")
+        self.n = len(self._conversion_table)
+
+        x_new_offset = min(xs)
+        y_new_offset = min(ys)
+
+        # Find the largest and smallest X values to figure out width for bitmap
+        used_width = max(xs) - min(xs) + 1
+        used_height = max(ys) - min(ys) + 1
+
+        if used_width != max_size or used_height != max_size:
+            new_bitmap = displayio.Bitmap(used_width, used_height, colors)
+            for px in range(max_size):
+                for py in range(max_size):
+                    if self._bitmap[px,py] == 1:
+                        new_bitmap[px - x_new_offset, py - y_new_offset] = 1
+            for pos, points in self._conversion_table.items():
+                l = []
+                for p in points:
+                    l.append((p[0]-x_new_offset,p[1]-y_new_offset))
+                self._conversion_table[pos] = l
+            self._bitmap = new_bitmap
+
+        super(Arect, self).__init__(
+            self._bitmap, pixel_shader=self._palette, x=x_offset+x_new_offset, y=y_offset+y_new_offset
+        )
 
 
 # TODO : ellipses cicles arcs piecharts
