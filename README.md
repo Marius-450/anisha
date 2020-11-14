@@ -13,7 +13,7 @@ All the shapes are displayio tilegrids and can be moved, hidden, etc. You just h
 ## Methods
 
 You can setup a new animation or animate the shape directly from your code without using led_animation :
-*`shape.fill(color)` set all animated pixels of the shape to the color given in hex format, ex : `0xFF0000`
+* `shape.fill(color)` set all animated pixels of the shape to the color given in hex format, ex : `0xFF0000`
 * `shape. __setitem__(pos, color)` set the pixels to the color given in hex format, ex : `0xFF0000`, individually or using a slice
 
 
