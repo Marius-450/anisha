@@ -391,8 +391,6 @@ class Aellipse(Arect):
 
         x_offset = x - (max_size-1)//2
         y_offset = y - (max_size-1)//2
-        # width = height = max_size
-        print("offset =", x_offset, y_offset)
 
         if outline is not None:
             theta = start_angle
@@ -408,20 +406,6 @@ class Aellipse(Arect):
                     ay = ny
                 ax = math.trunc(ax + max_size/2)
                 ay = math.trunc(ay + max_size/2)
-
-                #debug
-                if ax >= max_size:
-                    ax = max_size-1
-                    print("ax too big !")
-                if ax < 0:
-                    ax = 0
-                    print("ax negative !!!")
-                if ay >= max_size:
-                    ay = max_size -1
-                    print("ay too big !")
-                if ay < 0:
-                    ay = 0
-                    print('ay negative !!!')
                 self._bitmap[ax , ay ] = 1
                 if ax != last_point[0] or ay != last_point[1]:
                     last_point = (ax, ay)
@@ -440,6 +424,7 @@ class Aellipse(Arect):
         used_width = max(xs) - min(xs) + 1
         used_height = max(ys) - min(ys) + 1
 
+        # Resize bitmap if needed.
         if used_width != max_size or used_height != max_size:
             new_bitmap = displayio.Bitmap(used_width, used_height, colors)
             for px in range(max_size):
@@ -457,7 +442,19 @@ class Aellipse(Arect):
             self._bitmap, pixel_shader=self._palette, x=x_offset+x_new_offset, y=y_offset+y_new_offset
         )
 
+class Acircle(Aellipse):
+    """An animated circle.
+    :param x: x coordinate of the center of the circle
+    :param y: y coordinate of the center of the circle
+    :param radius: radius of the circle in pixels.
+    :param angle_offset : angle in degrees where to start drawing and animating.
+    0 = East (default), 90 = North, 180 = West, 270 = South.
+    :param outline: The outline of the circle. Must be a hex value for a color
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    """
+    def __init__(self, x, y, radius, *, angle_offset=0, outline=None, colors=128):
+        super().__init__(x, y, math.ceil(radius*2), math.ceil(radius*2), angle_offset=angle_offset, outline=outline, colors=colors)
 
-# TODO : ellipses cicles arcs piecharts
+# TODO : arcs (?) piecharts (?)
 #        regular polygons
 #        points
