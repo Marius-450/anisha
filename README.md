@@ -87,12 +87,13 @@ triangle = anisha.Atriangle(x0, y0, x1, y1, x2, y2, outline=None, colors=128)
 
 # Aellipse
 
-Aellipse is an animated ellipse shape class. It can also be used to draw arcs and circles.
-It is a serie of `steps` lines, so it can also be a more or less regular polygon. 
-If R == r, it draws a circle, or a circle arc.
+Aellipse is an animated ellipse shape class. It can also be used to draw arcs and circles.  
+It is a serie of `steps` lines, so it can also be a more or less regular polygon.  
+If R == r, it draws a circle, or a circle arc.  
 
 ```
-ellipse = anisha.Aellipse( x, y, R, r, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None)
+ellipse = anisha.Aellipse( x, y, R, r, start_angle = 0, end_angle = 360, angle_offset = 0, 
+                          outline=None, colors=128, steps = None)
 
     :param x: x coordinate of the center of the ellipse.
     :param y: y coordinate of the center of the ellipse.
@@ -103,7 +104,7 @@ ellipse = anisha.Aellipse( x, y, R, r, start_angle = 0, end_angle = 360, angle_o
     :param angle_offset: angle in degrees to rotate the shape counter-clockwise. default = 0 = start at East.
     :param outline: The outline of the ellipse. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
-    :param steps: Number of lines to draw.
+    :param steps: Number of lines to draw. If None, computed to be roundish.
 
 ```
 
