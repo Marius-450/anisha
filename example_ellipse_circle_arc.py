@@ -42,8 +42,8 @@ d = 7
 c = 128
 
 
-ellipse1 = anisha.Aellipse(15,15,32,20,angle_offset=45,outline=0x004000)
-arc1 = anisha.Aellipse(46,15,32,32,start_angle=180, end_angle=360, angle_offset=0,outline=0xFF0000)
+ellipse1 = anisha.Aellipse(15,15,15,10,angle_offset=45,outline=0x004000)
+arc1 = anisha.Aellipse(46,15,15,15,start_angle=180, end_angle=360, angle_offset=0,outline=0xFF0000)
 circle1 = anisha.Acircle(46, 18, 13, outline=0x0000FF, angle_offset=90)
 
 group = displayio.Group(max_size=4)

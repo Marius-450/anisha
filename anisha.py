@@ -9,6 +9,8 @@
 import displayio
 import math
 
+import gc
+
 class Arect(displayio.TileGrid):
     """An animated rectangle.
     :param x: The x-position of the top left corner.
@@ -27,7 +29,7 @@ class Arect(displayio.TileGrid):
     def __init__(self, x, y, width, height, *, fill=None, outline=None, stroke=1, anim_mode="circular", colors=128):
         self._bitmap = displayio.Bitmap(width, height, colors)
         self._palette = displayio.Palette(colors)
-
+        self.closed = True
         self.width = width
         self.height = height
         self.stroke = stroke
@@ -216,6 +218,85 @@ class Arect(displayio.TileGrid):
             if pixels[i] == 0:
                 self._palette[i] = 0x000000
 
+    def _add_pixel(self,x,y,position=None):
+        if position is None:
+            position = len(self._conversion_table)
+            if position > 0 and (x,y) in self._conversion_table[position - 1]:
+                return position-1
+            self._conversion_table[position] = [(x,y)]
+            return position
+        if (x,y) in self._conversion_table[position]:
+            return position
+        self._conversion_table[position].append((x,y))
+        return position
+
+    # pylint: disable=invalid-name, too-many-locals, too-many-branches
+    def _line(self, x0, y0, x1, y1, color):
+        reverse = False
+        buffer = []
+        if x0 == x1:
+            if y0 > y1:
+                y0, y1 = y1, y0
+                reverse = True
+            for _h in range(y0, y1 + 1):
+                self._bitmap[x0, _h] = color
+                if reverse:
+                    buffer.append((x0,_h))
+                else:
+                    self._add_pixel(x0,_h)
+        elif y0 == y1:
+            if x0 > x1:
+                x0, x1 = x1, x0
+                reverse = True
+            for _w in range(x0, x1 + 1):
+                self._bitmap[_w, y0] = color
+                if reverse:
+                    buffer.append((_w,y0))
+                else:
+                    self._add_pixel(_w,y0)
+        else:
+            steep = abs(y1 - y0) > abs(x1 - x0)
+            if steep:
+                x0, y0 = y0, x0
+                x1, y1 = y1, x1
+
+            if x0 > x1:
+                reverse = True
+                x0, x1 = x1, x0
+                y0, y1 = y1, y0
+
+            dx = x1 - x0
+            dy = abs(y1 - y0)
+
+            err = dx / 2
+
+            if y0 < y1:
+                ystep = 1
+            else:
+                ystep = -1
+
+            for x in range(x0, x1 + 1):
+                if steep:
+                    self._bitmap[y0, x] = color
+                    if reverse:
+                        buffer.append((y0, x))
+                    else:
+                        self._add_pixel(y0,x)
+                else:
+                    self._bitmap[x, y0] = color
+                    if reverse:
+                        buffer.append((x,y0))
+                    else:
+                        self._add_pixel(x,y0)
+                err -= dy
+                if err < 0:
+                    y0 += ystep
+                    err += dx
+        if reverse:
+            while len(buffer) > 0:
+                x,y = buffer.pop()
+                self._add_pixel(x,y)
+
 
 class Apoly(Arect):
     """An animated polygon.
@@ -271,72 +352,6 @@ class Apoly(Arect):
             self._bitmap, pixel_shader=self._palette, x=x_offset, y=y_offset
         )
 
-    # pylint: disable=invalid-name, too-many-locals, too-many-branches
-    def _line(self, x0, y0, x1, y1, color):
-        reverse = False
-        buffer = []
-        if x0 == x1:
-            if y0 > y1:
-                y0, y1 = y1, y0
-                reverse = True
-            for _h in range(y0, y1 + 1):
-                self._bitmap[x0, _h] = color
-                if reverse:
-                    buffer.append((x0,_h))
-                else:
-                    self._conversion_table[len(self._conversion_table)] = [(x0,_h)]
-        elif y0 == y1:
-            if x0 > x1:
-                x0, x1 = x1, x0
-                reverse = True
-            for _w in range(x0, x1 + 1):
-                self._bitmap[_w, y0] = color
-                if reverse:
-                    buffer.append((_w,y0))
-                else:
-                    self._conversion_table[len(self._conversion_table)] = [(_w,y0)]
-        else:
-            steep = abs(y1 - y0) > abs(x1 - x0)
-            if steep:
-                x0, y0 = y0, x0
-                x1, y1 = y1, x1
-
-            if x0 > x1:
-                reverse = True
-                x0, x1 = x1, x0
-                y0, y1 = y1, y0
-
-            dx = x1 - x0
-            dy = abs(y1 - y0)
-
-            err = dx / 2
-
-            if y0 < y1:
-                ystep = 1
-            else:
-                ystep = -1
-
-            for x in range(x0, x1 + 1):
-                if steep:
-                    self._bitmap[y0, x] = color
-                    if reverse:
-                        buffer.append((y0, x))
-                    else:
-                        self._conversion_table[len(self._conversion_table)] = [(y0,x)]
-                else:
-                    self._bitmap[x, y0] = color
-                    if reverse:
-                        buffer.append((x,y0))
-                    else:
-                        self._conversion_table[len(self._conversion_table)] = [(x,y0)]
-                err -= dy
-                if err < 0:
-                    y0 += ystep
-                    err += dx
-        if reverse:
-            while len(buffer) > 0:
-                x,y = buffer.pop()
-                self._conversion_table[len(self._conversion_table)] = [(x,y)]
 
 
 class Atriangle(Apoly):
@@ -365,18 +380,27 @@ class Aline(Apoly):
 
 class Aellipse(Arect):
     """An animated ellipse.
-    :param x: x coordinate of the center of the ellipse
-    :param y: y coordinate of the center of the ellipse
-    :param height:
-    :param width:
-    :param start_angle: in degrees, default = 0
+    :param x: x coordinate of the center of the ellipse.
+    :param y: y coordinate of the center of the ellipse.
+    :param R: greatest radius in pixels.
+    :param r: smallest radius in pixels.
+    :param start_angle: in degrees, clockwise. default = 0.
     :param end_angle: in degrees. must be greater than start_angle. default = 360.
-    :param outline: The outline of the ellipse. Must be a hex value for a color
+    :param angle_offset: angle in degrees to rotate the shape clockwise. default = 0 = East.
+    :param outline: The outline of the ellipse. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
+    :param steps: Number of points to draw.
+    all angles can be negatives or greater than 360.
     """
-    def __init__(self, x, y, width, height, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128):
-        self.width = width
-        self.height = height
+    def __init__(self, x, y, R, r, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None):
+        gc.collect()
+        if end_angle - start_angle >= 360:
+            self.closed = True
+        else:
+            self.closed = False
+
+        self.width = R*2 +1
+        self.height = r*2 +1
         self._palette = displayio.Palette(colors)
         self._palette.make_transparent(0)
         max_size = max(self.width, self.height)
@@ -393,26 +417,36 @@ class Aellipse(Arect):
         y_offset = y - (max_size-1)//2
 
         if outline is not None:
+            if steps is None:
+                #compute it
+                perimeter = math.pi * (3 * (R+r) - math.sqrt((3*R+r)*(R+3*r))  )
+                if self.closed:
+                    steps = math.trunc(perimeter / 6)
+                else:
+                    steps = math.trunc((perimeter * ((end_angle - start_angle)/360)) / 4)
+            step = 360 / steps
+            #print("theoric perimeter = ", perimeter)
+            #print("steps :",steps, "theta step =", step)
             theta = start_angle
-            r = math.radians(angle_offset)
+            off_r = math.radians(angle_offset)
             self._palette[1] = outline
             while theta <= end_angle:
-                ax = math.cos(math.radians(theta)) * ((width-1)/2)
-                ay = math.sin(math.radians(theta)) * ((height-1)/2)
+                ax = math.cos(math.radians(theta)) * R
+                ay = math.sin(math.radians(theta)) * r
                 if angle_offset != 0:
-                    nx = ax * math.cos(r) + ay * math.sin(r)
-                    ny = -ax * math.sin(r) + ay * math.cos(r)
+                    nx = ax * math.cos(off_r) + ay * math.sin(off_r)
+                    ny = -ax * math.sin(off_r) + ay * math.cos(off_r)
                     ax = nx
                     ay = ny
-                ax = math.trunc(ax + max_size/2)
-                ay = math.trunc(ay + max_size/2)
-                self._bitmap[ax , ay ] = 1
-                if ax != last_point[0] or ay != last_point[1]:
-                    last_point = (ax, ay)
-                    self._conversion_table[len(self._conversion_table)] = [(ax, ay)]
-                    xs.append(ax)
-                    ys.append(ay)
-                theta += 2
+                ax = math.floor(ax + max_size/2)
+                ay = math.floor(ay + max_size/2)
+
+                #self._bitmap[ax , ay ] = 1
+                xs.append(ax)
+                ys.append(ay)
+                if len(xs) > 1:
+                    self._line(xs[-2], ys[-2], ax, ay, 1)
+                theta += step
         else:
             raise RuntimeError("base color must be provided for outline.")
         self.n = len(self._conversion_table)
@@ -420,7 +454,7 @@ class Aellipse(Arect):
         x_new_offset = min(xs)
         y_new_offset = min(ys)
 
-        # Find the largest and smallest X values to figure out width for bitmap
+        # Find the largest and smallest X and Y values to figure out width and height for the bitmap
         used_width = max(xs) - min(xs) + 1
         used_height = max(ys) - min(ys) + 1
 
@@ -437,7 +471,7 @@ class Aellipse(Arect):
                     l.append((p[0]-x_new_offset,p[1]-y_new_offset))
                 self._conversion_table[pos] = l
             self._bitmap = new_bitmap
-
+        gc.collect()
         super(Arect, self).__init__(
             self._bitmap, pixel_shader=self._palette, x=x_offset+x_new_offset, y=y_offset+y_new_offset
         )
@@ -453,7 +487,7 @@ class Acircle(Aellipse):
     :param colors: Number of colors used in the bitmap and palette. default 128.
     """
     def __init__(self, x, y, radius, *, angle_offset=0, outline=None, colors=128):
-        super().__init__(x, y, math.ceil(radius*2), math.ceil(radius*2), angle_offset=angle_offset, outline=outline, colors=colors)
+        super().__init__(x, y, radius, radius, angle_offset=angle_offset, outline=outline, colors=colors)
 
 # TODO : arcs (?) piecharts (?)
 #        regular polygons
