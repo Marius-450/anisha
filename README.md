@@ -10,6 +10,14 @@ Still alpha development version.
 The idea is to animate shapes in a displayio environment, as if it was neopixel stripes. It permits to emulate as many strips you want and test animations without physically having to plug anything else. It can also of course be used to add some life in your programs, like a sparkling frame for a clock or a waiting animation during a request / reload ...
 All the shapes are displayio tilegrids and can be moved, hidden, etc. You just have to add it to a group to display it.
 
+## Credits
+
+The base code for many shapes comes from adafruit_display_shapes https://github.com/adafruit/Adafruit_CircuitPython_Display_Shapes , except for the ellipse that was adapted from adafruit_circuitpython_turtle lib https://github.com/adafruit/Adafruit_CircuitPython_turtle .
+I also shamelessly copied some code from pypixelbuf lib https://github.com/adafruit/Adafruit_CircuitPython_Pypixelbuf
+
+Thanks to Adafruit for making this possible.
+
+
 ## Methods 
 
 You can setup a new animation or animate the shape directly from your code without using led_animation :
@@ -127,7 +135,7 @@ circle = anisha.Acircle(x, y, radius, angle_offset=0, outline=None, colors=128, 
 
 ```
 
-Under the hood, the circle is a regular polygon of `steps` sides. When `steps` is ommited (or set to `None`), the number of steps is computed automatically. Sometimes,  if the circle drawn is not perfectly round, you can ajust manually the `steps`parameter. Experiments shows only multiples of 4 draws symetric circles (but not always).
+Under the hood, the circle is a regular polygon of `steps` sides. When `steps` is ommited (or set to `None`), the number of steps is computed automatically. Sometimes,  if the circle drawn is not perfectly round, you can ajust manually the `steps` parameter. Experiments shows only multiples of 4 draws symetric circles (but not always).
 
 # Aregularpoly
 
