@@ -417,24 +417,23 @@ class Aellipse(Arect):
 
         if outline is not None:
             if steps is None:
-                if R > 9:
+                mean = int((r + R)/2)
+                if mean > 9:
                     frac = (end_angle - start_angle)/360
-                    moy = int((r + R)/2)
-                    steps = int(min(3 + (moy+1) / 4.0, 12.0) * frac) * 4
+                    steps = int(min(3 + (mean+1) / 4.0, 12.0) * frac) * 4
                 else:
-                    if moy == 5:
+                    if mean == 5:
                         steps = 20
-                    elif moy == 6:
+                    elif mean == 6:
                         steps = 28
-                    elif moy == 7:
+                    elif mean == 7:
                         steps = 44
-                    elif moy == 8:
+                    elif mean == 8:
                         steps = 40
-                    elif moy == 9:
+                    elif mean == 9:
                         steps = 44
                     else:
                         steps = 20
-            print("steps :", steps)
             step = 360 / steps
             theta = start_angle
             off_r = math.radians(angle_offset)
