@@ -114,7 +114,7 @@ ellipse = anisha.Aellipse( x, y, R, r, start_angle = 0, end_angle = 360, angle_o
 Acircle is an animated circle shape class.
 
 ```
-circle = anisha.Acircle(x, y, radius, angle_offset=0, outline=None, colors=128)
+circle = anisha.Acircle(x, y, radius, angle_offset=0, outline=None, colors=128, steps=None)
 
     :param x: x coordinate of the center of the circle
     :param y: y coordinate of the center of the circle
@@ -123,5 +123,8 @@ circle = anisha.Acircle(x, y, radius, angle_offset=0, outline=None, colors=128)
     0 = East (default), 90 = North, 180 = West, 270 = South.
     :param outline: The outline of the circle. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
+    :param steps: Number of lines to draw. If None, computed to be roundish.
 
 ```
+
+Under the hood, the circle is a regular polygon of `steps` sides. When `steps` is ommited (or set to `None`), the number of steps is computed automatically. Sometimes,  if the circle drawn is not perfectly round, you can ajust manually the `steps`parameter. Experiments shows only multiples of 4 draws symetric circles (but not always).
