@@ -128,3 +128,20 @@ circle = anisha.Acircle(x, y, radius, angle_offset=0, outline=None, colors=128, 
 ```
 
 Under the hood, the circle is a regular polygon of `steps` sides. When `steps` is ommited (or set to `None`), the number of steps is computed automatically. Sometimes,  if the circle drawn is not perfectly round, you can ajust manually the `steps`parameter. Experiments shows only multiples of 4 draws symetric circles (but not always).
+
+# Aregularpoly
+
+Aregularpoly is an animated regular polygon shape class.
+
+```
+poly = anisha.Aregularpoly(x, y, sides, radius, angle_offset=0, outline=None, colors=128)
+
+    :param x: x coordinate of the center of the polygon.
+    :param y: y coordinate of the center of the polygon.
+    :param sides: number of sides of the polygon.
+    :param radius: radius in pixels.
+    :param angle_offset : angle in degrees to rotate the shape counter-clockwise. default = 0 = start at East.
+    :param outline: The outline of the circle. Must be a hex value for a color.
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+```
+    def __init__(self, x, y, sides, radius, *, angle_offset=0, outline=None, colors=128):

@@ -484,17 +484,32 @@ class Aellipse(Arect):
 
 class Acircle(Aellipse):
     """An animated circle.
-    :param x: x coordinate of the center of the circle
-    :param y: y coordinate of the center of the circle
+    :param x: x coordinate of the center of the circle.
+    :param y: y coordinate of the center of the circle.
     :param radius: radius of the circle in pixels.
     :param angle_offset : angle in degrees where to start drawing and animating.
     0 = East (default), 90 = North, 180 = West, 270 = South.
-    :param outline: The outline of the circle. Must be a hex value for a color
+    :param outline: The outline of the circle. Must be a hex value for a color.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param steps: Number of lines to draw. If None, computed to be roundish.
     """
     def __init__(self, x, y, radius, *, angle_offset=0, outline=None, colors=128, steps=None):
         super().__init__(x, y, radius, radius, angle_offset=angle_offset, outline=outline, colors=colors, steps=steps)
+
+class Aregularpoly(Acircle):
+    """An animated regular polygon.
+    :param x: x coordinate of the center of the polygon.
+    :param y: y coordinate of the center of the polygon.
+    :param sides: number of sides of the polygon.
+    :param radius: radius in pixels.
+    :param angle_offset : angle in degrees to rotate the shape counter-clockwise. default = 0 = start at East.
+    :param outline: The outline of the circle. Must be a hex value for a color.
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    """
+    def __init__(self, x, y, sides, radius, *, angle_offset=0, outline=None, colors=128):
+        super().__init__(x, y, radius, angle_offset=angle_offset+((360/sides)/2), outline=outline, colors=colors, steps=sides)
+
+
 
 # TODO : arcs (?) piecharts (?)
 #        regular polygons
