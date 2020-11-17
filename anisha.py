@@ -389,7 +389,7 @@ class Aellipse(Arect):
     :param angle_offset: angle in degrees to rotate the shape clockwise. default = 0 = East.
     :param outline: The outline of the ellipse. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
-    :param steps: Number of points to draw.
+    :param steps: Number of lines to draw. If None, computed to be roundish.
     all angles can be negatives or greater than 360.
     """
     def __init__(self, x, y, R, r, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None):
@@ -399,8 +399,8 @@ class Aellipse(Arect):
         else:
             self.closed = False
 
-        self.width = R*2 +1
-        self.height = r*2 +1
+        self.width = R*2
+        self.height = r*2
         self._palette = displayio.Palette(colors)
         self._palette.make_transparent(0)
         max_size = max(self.width, self.height)
@@ -411,37 +411,44 @@ class Aellipse(Arect):
         ys = []
 
         self._conversion_table = {}
-        last_point = (-1,-1)
 
         x_offset = x - (max_size-1)//2
         y_offset = y - (max_size-1)//2
 
         if outline is not None:
             if steps is None:
-                #compute it
-                perimeter = math.pi * (3 * (R+r) - math.sqrt((3*R+r)*(R+3*r))  )
-                if self.closed:
-                    steps = math.trunc(perimeter / 6)
+                if R > 9:
+                    frac = (end_angle - start_angle)/360
+                    moy = int((r + R)/2)
+                    steps = int(min(3 + (moy+1) / 4.0, 12.0) * frac) * 4
                 else:
-                    steps = math.trunc((perimeter * ((end_angle - start_angle)/360)) / 4)
+                    if moy == 5:
+                        steps = 20
+                    elif moy == 6:
+                        steps = 28
+                    elif moy == 7:
+                        steps = 44
+                    elif moy == 8:
+                        steps = 40
+                    elif moy == 9:
+                        steps = 44
+                    else:
+                        steps = 20
+            print("steps :", steps)
             step = 360 / steps
-            #print("theoric perimeter = ", perimeter)
-            #print("steps :",steps, "theta step =", step)
             theta = start_angle
             off_r = math.radians(angle_offset)
             self._palette[1] = outline
             while theta <= end_angle:
-                ax = math.cos(math.radians(theta)) * R
-                ay = math.sin(math.radians(theta)) * r
+                ax = math.cos(math.radians(theta)) * (R-0.5)
+                ay = math.sin(math.radians(theta)) * (r-0.5)
                 if angle_offset != 0:
                     nx = ax * math.cos(off_r) + ay * math.sin(off_r)
                     ny = -ax * math.sin(off_r) + ay * math.cos(off_r)
                     ax = nx
                     ay = ny
-                ax = math.floor(ax + max_size/2)
-                ay = math.floor(ay + max_size/2)
-
-                #self._bitmap[ax , ay ] = 1
+                ax = int(round(ax + (max_size-1)/2,0))
+                ay = int(round(ay + (max_size-1)/2,0))
                 xs.append(ax)
                 ys.append(ay)
                 if len(xs) > 1:
@@ -485,9 +492,10 @@ class Acircle(Aellipse):
     0 = East (default), 90 = North, 180 = West, 270 = South.
     :param outline: The outline of the circle. Must be a hex value for a color
     :param colors: Number of colors used in the bitmap and palette. default 128.
+    :param steps: Number of lines to draw. If None, computed to be roundish.
     """
-    def __init__(self, x, y, radius, *, angle_offset=0, outline=None, colors=128):
-        super().__init__(x, y, radius, radius, angle_offset=angle_offset, outline=outline, colors=colors)
+    def __init__(self, x, y, radius, *, angle_offset=0, outline=None, colors=128, steps=None):
+        super().__init__(x, y, radius, radius, angle_offset=angle_offset, outline=outline, colors=colors, steps=steps)
 
 # TODO : arcs (?) piecharts (?)
 #        regular polygons
