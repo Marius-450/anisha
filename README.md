@@ -152,4 +152,24 @@ poly = anisha.Aregularpoly(x, y, sides, radius, angle_offset=0, outline=None, co
     :param outline: The outline of the circle. Must be a hex value for a color.
     :param colors: Number of colors used in the bitmap and palette. default 128.
 ```
-    def __init__(self, x, y, sides, radius, *, angle_offset=0, outline=None, colors=128):
+
+
+# Aegg
+
+Aegg is an animated egg shape class.
+
+```
+egg = anisha.Aegg(x, y, sides, R, r, start_angle=0, end_angle=360, angle_offset=0, outline=None, colors=128)
+
+    :param x: x coordinate of the center of the egg.
+    :param y: y coordinate of the center of the egg.
+    :param R: greatest radius, in pixels.
+    :param r: smallest radius in pixels.
+    :param start_angle: in degrees, clockwise. default = 0.
+    :param end_angle: in degrees. must be greater than start_angle. default = 360.
+    :param angle_offset : angle in degrees to rotate the shape counter-clockwise. default = 0 = pointing North.
+    :param outline: The outline of the egg. Must be a hex value for a color.
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+```
+
+
