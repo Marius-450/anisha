@@ -172,4 +172,20 @@ egg = anisha.Aegg(x, y, sides, R, r, start_angle=0, end_angle=360, angle_offset=
     :param colors: Number of colors used in the bitmap and palette. default 128.
 ```
 
+# Aheart
+Aheart is an animated heart shape class. The result is sometimes surprising. Using odd values for `height` parameter (that will also be the width) is more symetric. Approximative minimum height : 13. Below this, the shape is barely a heart. You can fine tune the steps to have better results than with computed one
 
+```
+heart = anisha.Aheart(x, y, height, start_angle=0, end_angle=360, angle_offset=0, outline=None, colors=128, steps=None)
+
+    :param x: x coordinate of the center of the heart.
+    :param y: y coordinate of the center of the heart.
+    :param height: height in pixels. will also be the width.
+    :param start_angle: in degrees, clockwise. default = 0.
+    :param end_angle: in degrees. must be greater than start_angle. default = 360.
+    :param angle_offset : angle in degrees to rotate the shape counter-clockwise. default = 0 = pointing South
+    :param outline: The outline of the heart. Must be a hex value for a color.
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    :param steps:  Number of lines to draw. If None, computed to be roundish.
+
+```
