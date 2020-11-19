@@ -540,6 +540,17 @@ class Aegg(Aellipse):
         return (ax, ay)
 
 class Aheart(Aellipse):
+    """An animated heart 
+    :param x: x coordinate of the center of the heart.
+    :param y: y coordinate of the center of the heart.
+    :param height: height in pixels. will also be the width.
+    :param start_angle: in degrees, clockwise. default = 0.
+    :param end_angle: in degrees. must be greater than start_angle. default = 360.
+    :param angle_offset : angle in degrees to rotate the shape counter-clockwise. default = 0 = pointing South
+    :param outline: The outline of the heart. Must be a hex value for a color.
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    :param steps:  Number of lines to draw. If None, computed to be roundish.
+    """
     def __init__(self, x, y, height, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None):
         super().__init__(x, y, (height/2)+1, height/2, angle_offset=angle_offset, start_angle = start_angle, end_angle = end_angle,
                          outline=outline, colors=colors, steps=steps)
@@ -550,10 +561,9 @@ class Aheart(Aellipse):
         t = (t - math.pi)
         ax = (r-0.5)*(math.sin(t)**3)
         ay = ((r-1.5)* 0.95 * math.cos(t)-((r-1.5)/2.8)*math.cos(2*t)-((r-1.5)/6.25)*math.cos(3*t)-math.cos(4*t))*(-1)-(r//5)
-
-        print("point : ", ax, ay, theta)
         return (ax, ay)
 
 
 # TODO : arcs (?) piecharts (?)
 #        points
+#        sin waves
