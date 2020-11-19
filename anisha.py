@@ -439,8 +439,7 @@ class Aellipse(Arect):
             off_r = math.radians(angle_offset)
             self._palette[1] = outline
             while theta <= end_angle:
-                ax = math.cos(math.radians(theta)) * (R-0.5)
-                ay = math.sin(math.radians(theta)) * (r-0.5)
+                ax , ay = self._curveplot(R, r, theta)
                 if angle_offset != 0:
                     nx = ax * math.cos(off_r) + ay * math.sin(off_r)
                     ny = -ax * math.sin(off_r) + ay * math.cos(off_r)
@@ -481,6 +480,12 @@ class Aellipse(Arect):
         super(Arect, self).__init__(
             self._bitmap, pixel_shader=self._palette, x=x_offset+x_new_offset, y=y_offset+y_new_offset
         )
+    def _curveplot(self, R, r, theta):
+        #ellipse shape
+        t = math.radians(theta)
+        ax = math.cos(t) * (R-0.5)
+        ay = math.sin(t) * (r-0.5)
+        return (ax, ay)
 
 class Acircle(Aellipse):
     """An animated circle.
@@ -509,7 +514,7 @@ class Aregularpoly(Acircle):
     def __init__(self, x, y, sides, radius, *, angle_offset=0, outline=None, colors=128):
         super().__init__(x, y, radius, angle_offset=angle_offset+((360/sides)/2), outline=outline, colors=colors, steps=sides)
 
-class Aegg(Arect):
+class Aegg(Aellipse):
     """An animated egg.
     :param x: x coordinate of the center of the egg.
     :param y: y coordinate of the center of the egg.
@@ -524,101 +529,30 @@ class Aegg(Arect):
     all angles can be negatives or greater than 360.
     """
     def __init__(self, x, y, R, r, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None):
-        gc.collect()
-        if end_angle - start_angle >= 360:
-            self.closed = True
-        else:
-            self.closed = False
-        start_angle = start_angle - 180
-        end_angle = end_angle - 180
-        self.width = r*2
-        self.height = R*2
-        self._palette = displayio.Palette(colors)
-        self._palette.make_transparent(0)
-        max_size = max(self.width+2, self.height+2)
-        # temporarily oversized
-        self._bitmap = displayio.Bitmap(max_size, max_size, colors)
+        super().__init__(x, y, R, r, angle_offset=angle_offset, start_angle = start_angle-180 , end_angle = end_angle-180,
+                         outline=outline, colors=colors, steps=steps)
 
-        xs = []
-        ys = []
+    def _curveplot(self, R, r, theta):
+        #egg shape
+        t = math.radians(theta)
+        ax = -math.sin(t+math.sin(t)/4) * (r-0.5)
+        ay = (R-0.5) * math.cos(t)
+        return (ax, ay)
 
-        self._conversion_table = {}
+class Aheart(Aellipse):
+    def __init__(self, x, y, R, r, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None):
+        super().__init__(x, y, R, r, angle_offset=angle_offset, start_angle = start_angle, end_angle = end_angle,
+                         outline=outline, colors=colors, steps=steps)
 
-        x_offset = x - (max_size-1)//2
-        y_offset = y - (max_size-1)//2
+    def _curveplot(self, R, r, theta):
+        #heart shape
+        t = math.radians(theta)
+        t = (t - math.pi)
+        ax = r*(math.sin(t)**3)
+        ay = ((r*(4/5)) * math.cos(t)-5*math.cos(2*t)-2*math.cos(3*t)-math.cos(4*t))*(-1)
+        print("point : ", ax, ay, theta)
+        return (ax, ay)
 
-        if outline is not None:
-            if steps is None:
-                mean = int((r + R)/2)
-                if mean > 9:
-                    frac = (end_angle - start_angle)/360
-                    steps = int(min(3 + (mean+1) / 4.0, 12.0) * frac) * 4
-                else:
-                    if mean == 5:
-                        steps = 20
-                    elif mean == 6:
-                        steps = 28
-                    elif mean == 7:
-                        steps = 44
-                    elif mean == 8:
-                        steps = 40
-                    elif mean == 9:
-                        steps = 44
-                    else:
-                        steps = 20
-            step = 360 / steps
-            theta = start_angle
-            off_r = math.radians(angle_offset)
-            self._palette[1] = outline
-            while theta <= end_angle:
-
-                # ax = math.cos(math.radians(theta)) * (R-0.5)
-                t = math.radians(theta)
-                ax = -math.sin(t+math.sin(t)/4) * (r-0.5)
-                ay = (R-0.5) * math.cos(t)
-                #ay = math.sin(math.radians(theta)) * (r-0.5)
-                if angle_offset != 0:
-                    nx = ax * math.cos(off_r) + ay * math.sin(off_r)
-                    ny = -ax * math.sin(off_r) + ay * math.cos(off_r)
-                    ax = nx
-                    ay = ny
-                ax = int(round(ax + (max_size-1)/2,0))
-                ay = int(round(ay + (max_size-1)/2,0))
-                xs.append(ax)
-                ys.append(ay)
-                print("new point : ", ax, ay)
-                if len(xs) > 1:
-                    self._line(xs[-2], ys[-2], ax, ay, 1)
-                theta += step
-        else:
-            raise RuntimeError("base color must be provided for outline.")
-        self.n = len(self._conversion_table)
-
-        x_new_offset = min(xs)
-        y_new_offset = min(ys)
-
-        # Find the largest and smallest X and Y values to figure out width and height for the bitmap
-        used_width = max(xs) - min(xs) + 1
-        used_height = max(ys) - min(ys) + 1
-
-        # Resize bitmap if needed.
-        if used_width != max_size or used_height != max_size:
-            new_bitmap = displayio.Bitmap(used_width, used_height, colors)
-            for px in range(max_size):
-                for py in range(max_size):
-                    if self._bitmap[px,py] == 1:
-                        new_bitmap[px - x_new_offset, py - y_new_offset] = 1
-            for pos, points in self._conversion_table.items():
-                l = []
-                for p in points:
-                    l.append((p[0]-x_new_offset,p[1]-y_new_offset))
-                self._conversion_table[pos] = l
-            self._bitmap = new_bitmap
-        gc.collect()
-        super(Arect, self).__init__(
-            self._bitmap, pixel_shader=self._palette, x=x_offset+x_new_offset, y=y_offset+y_new_offset
-        )
 
 # TODO : arcs (?) piecharts (?)
-#        regular polygons
 #        points
