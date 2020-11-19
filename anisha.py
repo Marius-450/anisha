@@ -403,7 +403,7 @@ class Aellipse(Arect):
         self.height = r*2
         self._palette = displayio.Palette(colors)
         self._palette.make_transparent(0)
-        max_size = max(self.width, self.height)
+        max_size = int(round(max(self.width, self.height)))
         # temporarily oversized
         self._bitmap = displayio.Bitmap(max_size, max_size, colors)
 
@@ -540,16 +540,17 @@ class Aegg(Aellipse):
         return (ax, ay)
 
 class Aheart(Aellipse):
-    def __init__(self, x, y, R, r, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None):
-        super().__init__(x, y, R, r, angle_offset=angle_offset, start_angle = start_angle, end_angle = end_angle,
+    def __init__(self, x, y, height, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None):
+        super().__init__(x, y, (height/2)+1, height/2, angle_offset=angle_offset, start_angle = start_angle, end_angle = end_angle,
                          outline=outline, colors=colors, steps=steps)
 
     def _curveplot(self, R, r, theta):
         #heart shape
         t = math.radians(theta)
         t = (t - math.pi)
-        ax = r*(math.sin(t)**3)
-        ay = ((r*(4/5)) * math.cos(t)-5*math.cos(2*t)-2*math.cos(3*t)-math.cos(4*t))*(-1)
+        ax = (r-0.5)*(math.sin(t)**3)
+        ay = ((r-1.5)* 0.95 * math.cos(t)-((r-1.5)/2.8)*math.cos(2*t)-((r-1.5)/6.25)*math.cos(3*t)-math.cos(4*t))*(-1)-(r//5)
+
         print("point : ", ax, ay, theta)
         return (ax, ay)
 
