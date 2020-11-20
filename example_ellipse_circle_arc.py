@@ -31,7 +31,7 @@ from adafruit_led_animation.color import PURPLE
 # Display setup
 # Use display = board.DISPLAY to use this code with a built-in display.
 
-matrix = Matrix()
+matrix = Matrix(bit_depth=5)
 display = matrix.display
 
 # delay in secs

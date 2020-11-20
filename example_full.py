@@ -38,7 +38,7 @@ from adafruit_led_animation.color import PURPLE, WHITE, AMBER, JADE, MAGENTA, OR
 
 # Display setup
 
-matrix = Matrix()
+matrix = Matrix(bit_depth=5)
 display = matrix.display
 
 # 114 colors is the minimum value for all the rainbow animations. 128 use same memory.
