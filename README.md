@@ -1,4 +1,5 @@
 # anisha
+<img src="https://raw.githubusercontent.com/Marius-450/screenshots/master/hearts.png" width="300" align="right">
 anisha is a CircuitPython lib to create displayio shapes behaving like neopixel objects that can be used with adafruit_led_animation.
 
 ## Version
@@ -92,6 +93,7 @@ triangle = anisha.Atriangle(x0, y0, x1, y1, x2, y2, outline=None, colors=128)
     :param colors: Number of colors used in the bitmap and palette. default 128.
 
 ```
+<img src="https://raw.githubusercontent.com/Marius-450/screenshots/master/Circle_arc_ellipse.png" width="300" align="right">
 
 # Aellipse
 
