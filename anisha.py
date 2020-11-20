@@ -55,7 +55,7 @@ class Arect(displayio.TileGrid):
             self._palette[0] = 0
             self._palette.make_transparent(0)
 
-        self._conversion_table = {}
+        self._conversion_table = []
 
         if self.anim_mode == "circular":
             self.n = (self.width * 2) + (self.height - self.stroke * 2)*2
@@ -64,7 +64,7 @@ class Arect(displayio.TileGrid):
             corner2 = self.width + self.height - self.stroke
             corner3 = self.width *2 + self.height - self.stroke*2
             for n in range(0, self.n):
-                self._conversion_table[n] = []
+                self._conversion_table.append([])
                 if n < corner1:
                     for p in range(0, self.stroke):
                         self._conversion_table[n].append((n,p))
@@ -81,13 +81,13 @@ class Arect(displayio.TileGrid):
         elif self.anim_mode == "horizontal":
             self.n = self.width
             for n in range(0, self.n):
-                self._conversion_table[n] = []
+                self._conversion_table.append([])
                 for p in range(0, self.height):
                     self._conversion_table[n].append((n,p))
         elif self.anim_mode == "vertical":
             self.n = self.height
             for n in range(0, self.n):
-                self._conversion_table[n] = []
+                self._conversion_table.append([])
                 for p in range(0, self.width):
                     self._conversion_table[n].append((p,n))
         else:
@@ -111,7 +111,7 @@ class Arect(displayio.TileGrid):
         :param color: Color to set.
         """
         self._palette[1] = color
-        for index, points in self._conversion_table.items():
+        for index, points in enumerate(self._conversion_table):
             for p in points:
                 x = p[0]
                 y = p[1]
@@ -139,8 +139,8 @@ class Arect(displayio.TileGrid):
                 self._clean_palette()
                 cindex = self._palette_index(0,2)
             if cindex == -1:
-                for i in range(0,len(self._palette)):
-                    print(i , " : ", self._palette[i])
+                #for i in range(0,len(self._palette)):
+                    # print(i , " : ", self._palette[i])
                 raise RuntimeError("no more color available")
             self._palette[cindex] = color
         # set the pixels to the cindex value
@@ -223,7 +223,7 @@ class Arect(displayio.TileGrid):
             position = len(self._conversion_table)
             if position > 0 and (x,y) in self._conversion_table[position - 1]:
                 return position-1
-            self._conversion_table[position] = [(x,y)]
+            self._conversion_table.append([(x,y)])
             return position
         if (x,y) in self._conversion_table[position]:
             return position
@@ -308,7 +308,7 @@ class Apoly(Arect):
     def __init__(self, points, *, outline=None, colors=128, closed=True):
         xs = []
         ys = []
-        self._conversion_table = {}
+        self._conversion_table = []
         self.closed = closed
 
         for point in points:
@@ -410,7 +410,7 @@ class Aellipse(Arect):
         xs = []
         ys = []
 
-        self._conversion_table = {}
+        self._conversion_table = []
 
         x_offset = x - (max_size-1)//2
         y_offset = y - (max_size-1)//2
@@ -470,7 +470,7 @@ class Aellipse(Arect):
                 for py in range(max_size):
                     if self._bitmap[px,py] == 1:
                         new_bitmap[px - x_new_offset, py - y_new_offset] = 1
-            for pos, points in self._conversion_table.items():
+            for pos, points in enumerate(self._conversion_table):
                 l = []
                 for p in points:
                     l.append((p[0]-x_new_offset,p[1]-y_new_offset))
@@ -562,6 +562,65 @@ class Aheart(Aellipse):
         ax = (r-0.5)*(math.sin(t)**3)
         ay = ((r-1.5)* 0.95 * math.cos(t)-((r-1.5)/2.8)*math.cos(2*t)-((r-1.5)/6.25)*math.cos(3*t)-math.cos(4*t))*(-1)-(r//5)
         return (ax, ay)
+
+class Astar(Aellipse):
+    """an animated star
+    :param x: x coordinate of the center of the star.
+    :param y: y coordinate of the center of the star.
+    :param points: number of points of the star.
+    :param radius: radius in pixel.
+    :param angle_offset : angle in degrees to rotate the shape counter-clockwise. 
+                          default = 0 = first point pointing East.
+    :param outline: The outline of the heart. Must be a hex value for a color.
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    """
+    def __init__(self, x, y, points, radius, *,jump=2, angle_offset=0, outline=None, colors=128):
+        self.width = self.height = radius*2+1
+        self.closed = True
+        self._palette = displayio.Palette(colors)
+        self._palette.make_transparent(0)
+        self._bitmap = displayio.Bitmap(self.width, self.height, colors)
+        self._conversion_table = []
+
+        if outline is not None:
+            self._palette[1] = outline
+            point_list = []
+            step = 360 / points
+            theta = -90
+            while theta < 270 :
+                ax, ay = self._curveplot(radius, radius, theta)
+                if angle_offset != 0:
+                    off_r = math.radians(angle_offset)
+                    nx = ax * math.cos(off_r) + ay * math.sin(off_r)
+                    ny = -ax * math.sin(off_r) + ay * math.cos(off_r)
+                    ax = nx
+                    ay = ny
+                ax = int(round(ax + self.width/2,0))
+                ay = int(round(ay + self.height/2,0))
+                point_list.append((ax,ay))
+                theta += step
+            a = None
+            b = None
+            for i in range(0,len(point_list)):
+                # print(i)
+                if a is None:
+                    a = 0
+                else:
+                    a = b
+                b = a+jump
+                if b >= points:
+                    b = b - points
+                # print(point_list[a], point_list[b])
+                self._line(point_list[a][0], point_list[a][1], point_list[b][0], point_list[b][1], 1)
+        else:
+            raise RuntimeError("base color must be provided for outline.")
+        self.n = len(self._conversion_table) 
+        x_offset = x - radius
+        y_offset = y - radius
+        super(Arect, self).__init__(
+              self._bitmap, pixel_shader=self._palette, x=x_offset, y=y_offset
+             )
+
 
 
 # TODO : arcs (?) piecharts (?)
