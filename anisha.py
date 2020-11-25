@@ -10,88 +10,21 @@ import math
 
 import gc
 
-class Arect(displayio.TileGrid):
-    """An animated rectangle.
-    :param x: The x-position of the top left corner.
-    :param y: The y-position of the top left corner.
-    :param width: The width of the rectangle.
-    :param height: The height of the rectangle.
-    :param fill: The color to fill the rectangle. Can be a hex value for a color or
-                 ``None`` for transparent.
-    :param outline: The outline of the rectangle. Must be a hex value for a color.
-    :param stroke: Used for the outline. Will not change the outer bound size set by ``width`` and
-                   ``height``.
-    :param anim_mode : "vertical", "horizontal" or "circular". default "circular"
-    :param colors : Number of colors used in the bitmap and palette. default 128.
-    """
 
-    def __init__(self, x, y, width, height, *, fill=None, outline=None, stroke=1, anim_mode="circular", colors=128):
-        self._bitmap = displayio.Bitmap(width, height, colors)
-        self._palette = displayio.Palette(colors)
-        self.closed = True
-        self.width = width
+
+class Ashape(displayio.TileGrid):
+    def __init__(self, x, y, width, height, *, outline=None, colors=128, stroke=1):
+        self.stroke=stroke
         self.height = height
-        self.stroke = stroke
-        self.anim_mode=anim_mode
-
-        if outline is not None:
-            self._palette[1] = outline
-            for w in range(width):
-                for line in range(stroke):
-                    self._bitmap[w, line] = 1
-                    self._bitmap[w, height - 1 - line] = 1
-            for _h in range(height):
-                for line in range(stroke):
-                    self._bitmap[line, _h] = 1
-                    self._bitmap[width - 1 - line, _h] = 1
-        else:
+        self.width = width
+        self._palette = displayio.Palette(colors)
+        self._palette.make_transparent(0)
+        if outline is None:
             raise RuntimeError("base color must be provided for outline.")
-
-        if fill is not None:
-            self._palette[0] = fill
-            self._palette.make_opaque(0)
-        else:
-            self._palette[0] = 0
-            self._palette.make_transparent(0)
-
+        self._palette[1] = outline
         self._conversion_table = []
-
-        if self.anim_mode == "circular":
-            self.n = (self.width * 2) + (self.height - self.stroke * 2)*2
-            corner0 = 0
-            corner1 = self.width
-            corner2 = self.width + self.height - self.stroke
-            corner3 = self.width *2 + self.height - self.stroke*2
-            for n in range(0, self.n):
-                self._conversion_table.append([])
-                if n < corner1:
-                    for p in range(0, self.stroke):
-                        self._conversion_table[n].append((n,p))
-                elif n < corner2:
-                    for p in range(0, self.stroke):
-                        self._conversion_table[n].append((self.width - 1 - p, n - self.width + self.stroke))
-                elif n < corner3:
-                    for p in range(0, self.stroke):
-                        self._conversion_table[n].append((self.width - (1 + self.stroke) - (n - corner2), (self.height - 1) - p))
-                else:
-                    for p in range(0, self.stroke):
-                        self._conversion_table[n].append((p,self.height - (n - corner3 ) - (1 + self.stroke)))
-
-        elif self.anim_mode == "horizontal":
-            self.n = self.width
-            for n in range(0, self.n):
-                self._conversion_table.append([])
-                for p in range(0, self.height):
-                    self._conversion_table[n].append((n,p))
-        elif self.anim_mode == "vertical":
-            self.n = self.height
-            for n in range(0, self.n):
-                self._conversion_table.append([])
-                for p in range(0, self.width):
-                    self._conversion_table[n].append((p,n))
-        else:
-            print("Error : anime_mode '",self.anim_mode ,"' not recognised. use 'circular', 'horizontal' or 'vertical'")
-            raise RuntimeError('anime mode not recognised')
+        self.n = 0
+        self._bitmap = displayio.Bitmap(self.width, self.height, colors)
         super().__init__(self._bitmap, pixel_shader=self._palette, x=x, y=y)
 
     def show(self):
@@ -321,9 +254,58 @@ class Arect(displayio.TileGrid):
                     if err < 0:
                         y0 -= ystep
                         err += dx
+
+class Arect(Ashape):
+    """An animated rectangle.
+    :param x: The x-position of the top left corner.
+    :param y: The y-position of the top left corner.
+    :param width: The width of the rectangle.
+    :param height: The height of the rectangle.
+    :param fill: The color to fill the rectangle. Can be a hex value for a color or
+                 ``None`` for transparent.
+    :param outline: The outline of the rectangle. Must be a hex value for a color.
+    :param stroke: Used for the outline. Will not change the outer bound size set by ``width`` and
+                   ``height``.
+    :param anim_mode : "vertical", "horizontal" or "circular". default "circular"
+    :param colors : Number of colors used in the bitmap and palette. default 128.
+    """
+    def __init__(self, x, y, width, height, *, fill=None, outline=None, stroke=1, anim_mode="circular", colors=128):
+        super().__init__(x, y, width, height, outline=outline, stroke=stroke, colors=colors)
+        
+        self.anim_mode=anim_mode
+        if fill is not None:
+            self._palette[0] = fill
+            self._palette.make_opaque(0)
+        else:
+            self._palette[0] = 0
+            self._palette.make_transparent(0)
+
+        if self.anim_mode == "circular":
+            self.closed = True
+            self._line(0,0,width-1,0,1)
+            self._line(width-1,0,width-1,height-1,1)
+            self._line(width-1,height-1,0,height-1,1)
+            self._line(0,height-1,0,0,1)
+        elif self.anim_mode == "horizontal":
+            self.closed = False
+            self.n = self.width
+            self.stroke= self.height
+            self._line(0,0,width-1,0,1)
+            self.stroke=stroke
+        elif self.anim_mode == "vertical":
+            self.closed = False
+            self.n = self.height
+            self.stroke=self.width
+            self._line(width-1,0,width-1,height-1,1)
+            self.stroke=stroke
+        else:
+            print("Error : anime_mode '",self.anim_mode ,"' not recognised. use 'circular', 'horizontal' or 'vertical'")
+            raise RuntimeError('anime mode not recognised')
+
+
         
 
-class Apoly(Arect):
+class Apoly(Ashape):
     """An animated polygon.
     :param points: A list of (x, y) tuples of the points
     :param outline: The outline of the polygon. Must be a hex value for a color
@@ -374,7 +356,7 @@ class Apoly(Arect):
             self.n = len(self._conversion_table)
         else:
             raise RuntimeError("base color must be provided for outline.")
-        super(Arect, self).__init__(
+        super(Ashape, self).__init__(
             self._bitmap, pixel_shader=self._palette, x=x_offset, y=y_offset
         )
 
@@ -403,26 +385,7 @@ class Aline(Apoly):
     def __init__(self, x0, y0, x1, y1, *, outline=None, colors=128, stroke=1):
         super().__init__([(x0, y0),(x1, y1)], outline=outline, colors=colors, closed=False, stroke=stroke)
 
-class Acustom(Arect):
-    def __init__(self, x, y, width, height, *, outline=None, colors=128, stroke=1):
-        self.stroke=stroke
-        self.height = height
-        self.width = width
-        self._palette = displayio.Palette(colors)
-        self._palette.make_transparent(0)
-        if outline is None:
-            raise RuntimeError("base color must be provided for outline.")
-        self._palette[1] = outline
-        self._conversion_table = []
-        self.n = 0
-        self._bitmap = displayio.Bitmap(self.width, self.height, colors)
-
-        super(Arect, self).__init__(
-            self._bitmap, pixel_shader=self._palette, x=x, y=y
-        )
-
-
-class Aellipse(Arect):
+class Aellipse(Ashape):
     """An animated ellipse.
     :param x: x coordinate of the center of the ellipse.
     :param y: y coordinate of the center of the ellipse.
@@ -522,7 +485,7 @@ class Aellipse(Arect):
                 self._conversion_table[pos] = l
             self._bitmap = new_bitmap
         gc.collect()
-        super(Arect, self).__init__(
+        super(Ashape, self).__init__(
             self._bitmap, pixel_shader=self._palette, x=x_offset+x_new_offset, y=y_offset+y_new_offset
         )
     def _curveplot(self, R, r, theta):
@@ -661,7 +624,7 @@ class Astar(Aellipse):
         self.n = len(self._conversion_table) 
         x_offset = x - radius
         y_offset = y - radius
-        super(Arect, self).__init__(
+        super(Ashape, self).__init__(
               self._bitmap, pixel_shader=self._palette, x=x_offset, y=y_offset
              )
 
