@@ -5,7 +5,6 @@
 # compatible with matrixportal objects animations
 #
 
-
 import displayio
 import math
 
@@ -194,6 +193,8 @@ class Arect(displayio.TileGrid):
         return -1
 
     def _getitem(self, index):
+        #print('getitem index :', index, ":", self._conversion_table[index][0])
+        #print(self._bitmap.height, self._bitmap.width)
         r,g,b,w = self._parse_color( self._bitmap[self._conversion_table[index][0]])
         return (r,g,b)
 
@@ -224,79 +225,103 @@ class Arect(displayio.TileGrid):
             if position > 0 and (x,y) in self._conversion_table[position - 1]:
                 return position-1
             self._conversion_table.append([(x,y)])
+            self.n = len(self._conversion_table)
             return position
-        if (x,y) in self._conversion_table[position]:
+        if len(self._conversion_table) > position and (x,y) in self._conversion_table[position]:
+            return position
+        if len(self._conversion_table) == position:
+            self._conversion_table.append([(x,y)])
+            self.n = len(self._conversion_table)
             return position
         self._conversion_table[position].append((x,y))
         return position
 
     # pylint: disable=invalid-name, too-many-locals, too-many-branches
     def _line(self, x0, y0, x1, y1, color):
-        reverse = False
-        buffer = []
+        if self.stroke > 1:
+            angle = math.degrees(math.atan2(y1-y0, x1-x0))
+            angle = angle % 360
+            angle = math.radians(angle)
+        for ax, ay in self._compute_line(x0,y0,x1,y1):
+            if self.stroke == 1:
+                try:
+                    self._bitmap[ax,ay] = color
+                except IndexError:
+                    print('indexerror : ',ax,ay)
+                    continue
+                self._add_pixel(ax,ay)
+            else:
+                bx = ax - math.sin(angle)*(self.stroke-1)
+                by = ay + math.cos(angle)*(self.stroke-1)
+                t = 0
+                e = 0
+                bx = int(round(bx))
+                by = int(round(by))
+                for tx,ty in self._compute_line(ax,ay,bx,by):
+                    try: 
+                        self._bitmap[tx,ty] = color
+                    except IndexError:
+                        print('indexerror : ',tx,ty)
+                        t += 1
+                        e += 1
+                        continue
+                    if t - e == 0:
+                        pos = self._add_pixel(tx,ty)
+                    else:
+                        self._add_pixel(tx,ty,position=pos)
+                    t += 1
+
+    def _compute_line(self, x0, y0, x1, y1):
         if x0 == x1:
+            step = 1
             if y0 > y1:
-                y0, y1 = y1, y0
-                reverse = True
-            for _h in range(y0, y1 + 1):
-                self._bitmap[x0, _h] = color
-                if reverse:
-                    buffer.append((x0,_h))
-                else:
-                    self._add_pixel(x0,_h)
+                step = -1
+            for _h in range(y0, y1 + step,step):
+                yield((x0, _h))
         elif y0 == y1:
+            step = 1
             if x0 > x1:
-                x0, x1 = x1, x0
-                reverse = True
-            for _w in range(x0, x1 + 1):
-                self._bitmap[_w, y0] = color
-                if reverse:
-                    buffer.append((_w,y0))
-                else:
-                    self._add_pixel(_w,y0)
+                step = -1
+            for _w in range(x0, x1 + step,step):
+                yield((_w, y0))
         else:
             steep = abs(y1 - y0) > abs(x1 - x0)
             if steep:
                 x0, y0 = y0, x0
                 x1, y1 = y1, x1
-
+            step = 1
             if x0 > x1:
-                reverse = True
-                x0, x1 = x1, x0
-                y0, y1 = y1, y0
+                step = -1
 
-            dx = x1 - x0
+            dx = abs(x1 - x0)
             dy = abs(y1 - y0)
 
             err = dx / 2
 
-            if y0 < y1:
+            if y0 > y1:
                 ystep = 1
             else:
                 ystep = -1
-
-            for x in range(x0, x1 + 1):
-                if steep:
-                    self._bitmap[y0, x] = color
-                    if reverse:
-                        buffer.append((y0, x))
+            for x in range(x0, x1 + step, step):
+                if step > 0:
+                    if steep:
+                        yield((y0, x))
                     else:
-                        self._add_pixel(y0,x)
+                        yield((x, y0))
+                    err = err - dy 
+                    if err < 0:
+                        y0 -= ystep
+                        err += dx
                 else:
-                    self._bitmap[x, y0] = color
-                    if reverse:
-                        buffer.append((x,y0))
+                    if steep:
+                        yield((y0,x))
                     else:
-                        self._add_pixel(x,y0)
-                err -= dy
-                if err < 0:
-                    y0 += ystep
-                    err += dx
-        if reverse:
-            while len(buffer) > 0:
-                x,y = buffer.pop()
-                self._add_pixel(x,y)
-
+                        yield((x, y0))
+                    err = err - dy
+                    if err < 0:
+                        y0 -= ystep
+                        err += dx
+        
 
 class Apoly(Arect):
     """An animated polygon.
@@ -305,7 +330,8 @@ class Apoly(Arect):
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param closed : Boolean indicating if the shape is closed or not.
     """
-    def __init__(self, points, *, outline=None, colors=128, closed=True):
+    def __init__(self, points, *, outline=None, colors=128, closed=True,stroke=1):
+        self.stroke=stroke
         xs = []
         ys = []
         self._conversion_table = []
@@ -319,8 +345,8 @@ class Apoly(Arect):
         y_offset = min(ys)
 
         # Find the largest and smallest X values to figure out width for bitmap
-        self.width = max(xs) - min(xs) + 1
-        self.height = max(ys) - min(ys) + 1
+        self.width = max(xs) - min(xs) + self.stroke
+        self.height = max(ys) - min(ys) + self.stroke
 
         self._palette = displayio.Palette(colors)
         self._palette.make_transparent(0)
@@ -362,8 +388,8 @@ class Atriangle(Apoly):
     :param outline: The outline of the triangle. Must be a hex value for a color
     :param colors: Number of colors used in the bitmap and palette. default 128.
     """
-    def __init__(self, x0, y0, x1, y1, x2, y2, *, outline=None, colors=128):
-        super().__init__([(x0, y0),(x1, y1),(x2, y2)], outline=outline, colors=colors, closed=True)
+    def __init__(self, x0, y0, x1, y1, x2, y2, *, outline=None, colors=128, stroke=1):
+        super().__init__([(x0, y0),(x1, y1),(x2, y2)], outline=outline, colors=colors, closed=True, stroke=stroke)
 
 
 
@@ -374,8 +400,26 @@ class Aline(Apoly):
     :param outline: The color of the line. Must be a hex value for a color
     :param colors: Number of colors used in the bitmap and palette. default 128.
     """
-    def __init__(self, x0, y0, x1, y1, *, outline=None, colors=128):
-        super().__init__([(x0, y0),(x1, y1)], outline=outline, colors=colors, closed=False)
+    def __init__(self, x0, y0, x1, y1, *, outline=None, colors=128, stroke=1):
+        super().__init__([(x0, y0),(x1, y1)], outline=outline, colors=colors, closed=False, stroke=stroke)
+
+class Acustom(Arect):
+    def __init__(self, x, y, width, height, *, outline=None, colors=128, stroke=1):
+        self.stroke=stroke
+        self.height = height
+        self.width = width
+        self._palette = displayio.Palette(colors)
+        self._palette.make_transparent(0)
+        if outline is None:
+            raise RuntimeError("base color must be provided for outline.")
+        self._palette[1] = outline
+        self._conversion_table = []
+        self.n = 0
+        self._bitmap = displayio.Bitmap(self.width, self.height, colors)
+
+        super(Arect, self).__init__(
+            self._bitmap, pixel_shader=self._palette, x=x, y=y
+        )
 
 
 class Aellipse(Arect):
@@ -392,8 +436,9 @@ class Aellipse(Arect):
     :param steps: Number of lines to draw. If None, computed to be roundish.
     all angles can be negatives or greater than 360.
     """
-    def __init__(self, x, y, R, r, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None):
+    def __init__(self, x, y, R, r, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None, stroke=1):
         gc.collect()
+        self.stroke=stroke
         if end_angle - start_angle >= 360:
             self.closed = True
         else:
@@ -498,8 +543,8 @@ class Acircle(Aellipse):
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param steps: Number of lines to draw. If None, computed to be roundish.
     """
-    def __init__(self, x, y, radius, *, angle_offset=0, outline=None, colors=128, steps=None):
-        super().__init__(x, y, radius, radius, angle_offset=angle_offset, outline=outline, colors=colors, steps=steps)
+    def __init__(self, x, y, radius, *, angle_offset=0, outline=None, colors=128, steps=None, stroke=1):
+        super().__init__(x, y, radius, radius, angle_offset=angle_offset, outline=outline, colors=colors, steps=steps, stroke=stroke)
 
 class Aregularpoly(Acircle):
     """An animated regular polygon.
@@ -511,8 +556,8 @@ class Aregularpoly(Acircle):
     :param outline: The outline of the circle. Must be a hex value for a color.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     """
-    def __init__(self, x, y, sides, radius, *, angle_offset=0, outline=None, colors=128):
-        super().__init__(x, y, radius, angle_offset=angle_offset+((360/sides)/2), outline=outline, colors=colors, steps=sides)
+    def __init__(self, x, y, sides, radius, *, angle_offset=0, outline=None, colors=128, stroke=1):
+        super().__init__(x, y, radius, angle_offset=angle_offset+((360/sides)/2), outline=outline, colors=colors, steps=sides, stroke=stroke)
 
 class Aegg(Aellipse):
     """An animated egg.
@@ -528,9 +573,9 @@ class Aegg(Aellipse):
     :param steps: Number of lines to draw. If None, computed to be roundish.
     all angles can be negatives or greater than 360.
     """
-    def __init__(self, x, y, R, r, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None):
+    def __init__(self, x, y, R, r, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None, stroke=1):
         super().__init__(x, y, R, r, angle_offset=angle_offset, start_angle = start_angle-180 , end_angle = end_angle-180,
-                         outline=outline, colors=colors, steps=steps)
+                         outline=outline, colors=colors, steps=steps, stroke=stroke)
 
     def _curveplot(self, R, r, theta):
         #egg shape
@@ -551,9 +596,9 @@ class Aheart(Aellipse):
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param steps:  Number of lines to draw. If None, computed to be roundish.
     """
-    def __init__(self, x, y, height, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None):
+    def __init__(self, x, y, height, *, start_angle = 0, end_angle = 360, angle_offset = 0, outline=None, colors=128, steps = None, stroke=1):
         super().__init__(x, y, (height/2)+1, height/2, angle_offset=angle_offset, start_angle = start_angle, end_angle = end_angle,
-                         outline=outline, colors=colors, steps=steps)
+                         outline=outline, colors=colors, steps=steps, stroke=stroke)
 
     def _curveplot(self, R, r, theta):
         #heart shape
@@ -574,7 +619,8 @@ class Astar(Aellipse):
     :param outline: The outline of the heart. Must be a hex value for a color.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     """
-    def __init__(self, x, y, points, radius, *,jump=2, angle_offset=0, outline=None, colors=128):
+    def __init__(self, x, y, points, radius, *,jump=2, angle_offset=0, outline=None, colors=128, stroke=1):
+        self.stroke = stroke
         self.width = self.height = radius*2+1
         self.closed = True
         self._palette = displayio.Palette(colors)
@@ -602,7 +648,6 @@ class Astar(Aellipse):
             a = None
             b = None
             for i in range(0,len(point_list)):
-                # print(i)
                 if a is None:
                     a = 0
                 else:
@@ -610,7 +655,6 @@ class Astar(Aellipse):
                 b = a+jump
                 if b >= points:
                     b = b - points
-                # print(point_list[a], point_list[b])
                 self._line(point_list[a][0], point_list[a][1], point_list[b][0], point_list[b][1], 1)
         else:
             raise RuntimeError("base color must be provided for outline.")
