@@ -205,7 +205,7 @@ heart = anisha.Aheart(x, y, height, start_angle=0, end_angle=360, angle_offset=0
 # Astar
 Astar is an animated star shape class.
 ```
-star = anisha.Aheart(x, y, points, radius, *, jump=2 angle_offset=0, outline=None, colors=128, stroke=1)
+star = anisha.Aheart(x, y, points, radius, jump=2, angle_offset=0, outline=None, colors=128, stroke=1)
 
     :param x: x coordinate of the center of the star.
     :param y: y coordinate of the center of the star.
@@ -222,7 +222,7 @@ star = anisha.Aheart(x, y, points, radius, *, jump=2 angle_offset=0, outline=Non
 Ashape is the meta-class for animated shapes. Can be used as-it to draw a shape directly from code.py for example.
 
 ```
-star = anisha.Aheart(x, y, width, height, *, outline=None, colors=128, stroke=1)
+shape = anisha.Ashape(x, y, width, height, outline=None, colors=128, stroke=1)
 
     :param x: x coordinate of the upper left corner of the shape.
     :param y: y coordinate of the upper left corner of the shape.
