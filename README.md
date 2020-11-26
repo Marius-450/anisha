@@ -31,8 +31,8 @@ You can setup a new animation or animate the shape directly from your code witho
 
 ## shared parameters
 
-* The number of colors in the `colors` parameter depends of the animations you plan to use. Blink only use 1 color at a time, while rainbow_* ones uses up to 256. More colors planned = more memory used. Logically, `shape.n` + 1 is a safe value. The code take care of recycling unused colors in the palette
-* `stroke` parameter sets the thikness of the lines drawn.
+* The number of colors in the `colors` parameter depends of the animations you plan to use. Blink only use 1 color at a time, while rainbow_* ones uses up to 256. More colors planned = more memory used. Logically, `shape.n` + 1 is a safe value. The code take care of recycling unused colors in the palette.
+* `stroke` parameter sets the thickness of the lines drawn.
 * `outline` is the color of the outine of the shape. Mandatory (but it may change in the future). 
 
 # Arect
@@ -52,8 +52,7 @@ rect = anisha.Arect(x, y,  width, height, fill=None, outline=None, stroke=1, ani
     :param fill: The color to fill the rectangle. Can be a hex value for a color or
                  ``None`` for transparent.
     :param outline: The outline of the rectangle. Must be a hex value for a color.
-    :param stroke: Thickness of the lines drawn, in pixels
-    :param stroke: Used for the outline. Will not change the outer bound size set by ``width`` and
+    :param stroke: Thickness of the lines drawn, in pixels. Will not change the outer bound size set by ``width`` and
                    ``height``.
     :param anim_mode : "vertical", "horizontal" or "circular". default "circular"
     :param colors : Number of colors used in the bitmap and palette. default 128
@@ -64,7 +63,7 @@ rect = anisha.Arect(x, y,  width, height, fill=None, outline=None, stroke=1, ani
 Apoly is an animated polygon shape class. It is the base class for triangles, lines, broken lines etc, but it can also be used as-it.
 
 ```
-polygon = anisha.Apoly(points, outline=None, colors=128, closed=True)
+polygon = anisha.Apoly(points, outline=None, colors=128, closed=True, stroke=1)
 
     :param points: A list of (x, y) tuples of the points
     :param outline: The outline of the polygon. Must be a hex value for a color or a 3 values tuple.
@@ -79,7 +78,7 @@ polygon = anisha.Apoly(points, outline=None, colors=128, closed=True)
 Aline is an animated line class. It is an "open polygon" with only 2 points.
 
 ```
-line = anisha.Aline(x0, y0, x1, y1, outline=None, colors=128)
+line = anisha.Aline(x0, y0, x1, y1, outline=None, colors=128, stroke=1)
 
     :param x0, y0: First point coordinates.
     :param x1, y1: Second point coordinates.    
@@ -93,7 +92,7 @@ line = anisha.Aline(x0, y0, x1, y1, outline=None, colors=128)
 Atriangle is an animated triangle shape class.
 
 ```
-triangle = anisha.Atriangle(x0, y0, x1, y1, x2, y2, outline=None, colors=128)
+triangle = anisha.Atriangle(x0, y0, x1, y1, x2, y2, outline=None, colors=128, stroke=1)
 
     :param x0, y0: First point coordinates.
     :param x1, y1: Second point coordinates.
@@ -112,7 +111,7 @@ If R == r, it draws a circle, or a circle arc.
 
 ```
 ellipse = anisha.Aellipse( x, y, R, r, start_angle = 0, end_angle = 360, angle_offset = 0, 
-                          outline=None, colors=128, steps = None)
+                          outline=None, colors=128, steps = None, stroke=1)
 
     :param x: x coordinate of the center of the ellipse.
     :param y: y coordinate of the center of the ellipse.
@@ -133,7 +132,7 @@ ellipse = anisha.Aellipse( x, y, R, r, start_angle = 0, end_angle = 360, angle_o
 Acircle is an animated circle shape class.
 
 ```
-circle = anisha.Acircle(x, y, radius, angle_offset=0, outline=None, colors=128, steps=None)
+circle = anisha.Acircle(x, y, radius, angle_offset=0, outline=None, colors=128, steps=None, stroke=1)
 
     :param x: x coordinate of the center of the circle
     :param y: y coordinate of the center of the circle
@@ -153,7 +152,7 @@ Under the hood, the circle is a regular polygon of `steps` sides. When `steps` i
 Aregularpoly is an animated regular polygon shape class.
 
 ```
-poly = anisha.Aregularpoly(x, y, sides, radius, angle_offset=0, outline=None, colors=128)
+poly = anisha.Aregularpoly(x, y, sides, radius, angle_offset=0, outline=None, colors=128, stroke=1)
 
     :param x: x coordinate of the center of the polygon.
     :param y: y coordinate of the center of the polygon.
@@ -171,7 +170,7 @@ poly = anisha.Aregularpoly(x, y, sides, radius, angle_offset=0, outline=None, co
 Aegg is an animated egg shape class.
 
 ```
-egg = anisha.Aegg(x, y, sides, R, r, start_angle=0, end_angle=360, angle_offset=0, outline=None, colors=128)
+egg = anisha.Aegg(x, y, sides, R, r, start_angle=0, end_angle=360, angle_offset=0, outline=None, colors=128, stroke=1)
 
     :param x: x coordinate of the center of the egg.
     :param y: y coordinate of the center of the egg.
