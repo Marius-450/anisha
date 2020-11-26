@@ -19,15 +19,21 @@ I also shamelessly copied some code from pypixelbuf lib https://github.com/adafr
 Thanks to Adafruit for making this possible.
 
 
-## Methods 
+## Methods and attributes of Ashape objects
 
 You can setup a new animation or animate the shape directly from your code without using led_animation :
 * `shape.fill(color)` set all animated pixels of the shape to the color given in hex format, ex : `0xFF0000`
-* `shape.__setitem__(pos, color)` set the pixels to the color given in hex format, ex : `0xFF0000`, individually or using a slice
+* `shape[pos] = color` set the pixels at `pos` to the color given in hex format, ex : `0xFF0000`, individually or using a slice.
+* `shape._add_pixel(x,y,position=pos)` add x and y coordinates to the `shape._conversion_table` list. If `position` is ommited or greater than the pixel list length, it add a new point and increase `shape.n`. If `position` exists, it add the coordinates to this point.
+* `shape._line(x0,y0,x1,y1,color_index)` draw a line from x0,y0 to x1,y1 with the color_index, using `self.stroke`, and populate `shape._conversion_table` accordingly
+* `shape._conversion_table` is a list of lists of coordinates. Each "pixel" can have multiple coordinates, wich permit lines with stroke > 1. It can be irregular, point 0 can have 10 coordinates while point 1 have only one.
+* `shape.n` is the number of pixels (each one refering to one or many physical pixels of the display)
 
 ## shared parameters
 
-* The number of colors in the `colors` parameter depends of the animations you plan to use. Blink only use 1 color at a time, while rainbow_* ones uses 100+. More colors planned = more memory used.
+* The number of colors in the `colors` parameter depends of the animations you plan to use. Blink only use 1 color at a time, while rainbow_* ones uses up to 256. More colors planned = more memory used. Logically, `shape.n` + 1 is a safe value. The code take care of recycling unused colors in the palette
+* `stroke` parameter sets the thikness of the lines drawn.
+* `outline` is the color of the outine of the shape. Mandatory (but it may change in the future). 
 
 # Arect
 
@@ -46,6 +52,7 @@ rect = anisha.Arect(x, y,  width, height, fill=None, outline=None, stroke=1, ani
     :param fill: The color to fill the rectangle. Can be a hex value for a color or
                  ``None`` for transparent.
     :param outline: The outline of the rectangle. Must be a hex value for a color.
+    :param stroke: Thickness of the lines drawn, in pixels
     :param stroke: Used for the outline. Will not change the outer bound size set by ``width`` and
                    ``height``.
     :param anim_mode : "vertical", "horizontal" or "circular". default "circular"
@@ -63,6 +70,7 @@ polygon = anisha.Apoly(points, outline=None, colors=128, closed=True)
     :param outline: The outline of the polygon. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param closed : Boolean indicating if the shape is closed or not.
+    :param stroke: Thickness of the lines drawn, in pixels
 ```
 
 
@@ -77,6 +85,7 @@ line = anisha.Aline(x0, y0, x1, y1, outline=None, colors=128)
     :param x1, y1: Second point coordinates.    
     :param outline: The color of the line. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
+    :param stroke: Thickness of the lines drawn, in pixels
 ```
 
 # Atriangle
@@ -91,7 +100,7 @@ triangle = anisha.Atriangle(x0, y0, x1, y1, x2, y2, outline=None, colors=128)
     :param x2, y2: Third point coordinates.
     :param outline: The outline of the triangle. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
-
+    :param stroke: Thickness of the lines drawn, in pixels
 ```
 <img src="https://raw.githubusercontent.com/Marius-450/screenshots/master/Circle_arc_ellipse.png" width="300" align="right">
 
@@ -107,15 +116,15 @@ ellipse = anisha.Aellipse( x, y, R, r, start_angle = 0, end_angle = 360, angle_o
 
     :param x: x coordinate of the center of the ellipse.
     :param y: y coordinate of the center of the ellipse.
-    :param R: greatest radius in pixels.
-    :param r: smallest radius in pixels.
-    :param start_angle: in degrees, clockwise. default = 0. 
-    :param end_angle: in degrees. must be greater than start_angle. default = 360.
-    :param angle_offset: angle in degrees to rotate the shape counter-clockwise. default = 0 = start at East.
+    :param R: Greatest radius in pixels.
+    :param r: Smallest radius in pixels.
+    :param start_angle: In degrees, clockwise. default = 0. 
+    :param end_angle: In degrees. must be greater than start_angle. default = 360.
+    :param angle_offset: Angle in degrees to rotate the shape counter-clockwise. default = 0 = start at East.
     :param outline: The outline of the ellipse. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param steps: Number of lines to draw. If None, computed to be roundish.
-
+    :param stroke: Thickness of the lines drawn, in pixels
 ```
 
 
@@ -134,7 +143,7 @@ circle = anisha.Acircle(x, y, radius, angle_offset=0, outline=None, colors=128, 
     :param outline: The outline of the circle. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param steps: Number of lines to draw. If None, computed to be roundish.
-
+    :param stroke: Thickness of the lines drawn, in pixels
 ```
 
 Under the hood, the circle is a regular polygon of `steps` sides. When `steps` is ommited (or set to `None`), the number of steps is computed automatically. Sometimes,  if the circle drawn is not perfectly round, you can ajust manually the `steps` parameter. Experiments shows only multiples of 4 draws symetric circles (but not always).
@@ -148,11 +157,12 @@ poly = anisha.Aregularpoly(x, y, sides, radius, angle_offset=0, outline=None, co
 
     :param x: x coordinate of the center of the polygon.
     :param y: y coordinate of the center of the polygon.
-    :param sides: number of sides of the polygon.
-    :param radius: radius in pixels.
-    :param angle_offset : angle in degrees to rotate the shape counter-clockwise. default = 0 = start at East.
-    :param outline: The outline of the circle. Must be a hex value for a color.
+    :param sides: Number of sides of the polygon.
+    :param radius: Radius in pixels.
+    :param angle_offset : Angle in degrees to rotate the shape counter-clockwise. default = 0 = start at East.
+    :param outline: The outline of the circle. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
+    :param stroke: Thickness of the lines drawn, in pixels
 ```
 
 
@@ -165,29 +175,63 @@ egg = anisha.Aegg(x, y, sides, R, r, start_angle=0, end_angle=360, angle_offset=
 
     :param x: x coordinate of the center of the egg.
     :param y: y coordinate of the center of the egg.
-    :param R: greatest radius, in pixels.
-    :param r: smallest radius in pixels.
-    :param start_angle: in degrees, clockwise. default = 0.
-    :param end_angle: in degrees. must be greater than start_angle. default = 360.
-    :param angle_offset : angle in degrees to rotate the shape counter-clockwise. default = 0 = pointing North.
-    :param outline: The outline of the egg. Must be a hex value for a color.
+    :param R: Greatest radius, in pixels.
+    :param r: Smallest radius in pixels.
+    :param start_angle: In degrees, clockwise. default = 0.
+    :param end_angle: In degrees. must be greater than start_angle. default = 360.
+    :param angle_offset : Angle in degrees to rotate the shape counter-clockwise. default = 0 = pointing North.
+    :param outline: The outline of the egg. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
+    :param stroke: Thickness of the lines drawn, in pixels
 ```
 
 # Aheart
 Aheart is an animated heart shape class. The result is sometimes surprising. Using odd values for `height` parameter (that will also be the width) is more symetric. Approximative minimum height : 13. Below this, the shape is barely a heart. You can fine tune the steps to have better results than with computed one
 
 ```
-heart = anisha.Aheart(x, y, height, start_angle=0, end_angle=360, angle_offset=0, outline=None, colors=128, steps=None)
+heart = anisha.Aheart(x, y, height, start_angle=0, end_angle=360, angle_offset=0, outline=None, colors=128, steps=None, stroke=1)
 
     :param x: x coordinate of the center of the heart.
     :param y: y coordinate of the center of the heart.
-    :param height: height in pixels. will also be the width.
-    :param start_angle: in degrees, clockwise. default = 0.
-    :param end_angle: in degrees. must be greater than start_angle. default = 360.
-    :param angle_offset : angle in degrees to rotate the shape counter-clockwise. default = 0 = pointing South
-    :param outline: The outline of the heart. Must be a hex value for a color.
+    :param height: Height in pixels. will also be the width.
+    :param start_angle: In degrees, clockwise. default = 0.
+    :param end_angle: In degrees. must be greater than start_angle. default = 360.
+    :param angle_offset : Angle in degrees to rotate the shape counter-clockwise. default = 0 = pointing South
+    :param outline: The outline of the heart. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param steps:  Number of lines to draw. If None, computed to be roundish.
+    :param stroke: Thickness of the lines drawn, in pixels
+```
+
+# Astar
+Astar is an animated star shape class.
+```
+star = anisha.Aheart(x, y, points, radius, *, jump=2 angle_offset=0, outline=None, colors=128, stroke=1)
+
+    :param x: x coordinate of the center of the star.
+    :param y: y coordinate of the center of the star.
+    :param points: Number of points to the star.
+    :param radius: Radius of the circle in wich the star is inscribed. in pixels.
+    :param jump: 
+    :param angle_offset : Angle in degrees to rotate the star counter-clockwise. default = 0 = first point points toward North
+    :param outline: The outline of the heart. Must be a hex value for a color or a 3 values tuple.
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    :param stroke: Thickness of the lines drawn, in pixels
+```
+
+# Ashape
+Ashape is the meta-class for animated shapes. Can be used as-it to draw a shape directly from code.py for example.
 
 ```
+star = anisha.Aheart(x, y, width, height, *, outline=None, colors=128, stroke=1)
+
+    :param x: x coordinate of the upper left corner of the shape.
+    :param y: y coordinate of the upper left corner of the shape.
+    :param width: Width in pixels.
+    :param height: Height in pixels.
+    :param outline: The outline color of the shape. Must be a hex value for a color or a 3 values tuple.
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    :param stroke: Thickness of the lines drawn, in pixels
+```
+
+
