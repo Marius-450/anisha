@@ -280,10 +280,13 @@ Ashape
 
 ## Bugs
 
-* the stroke is out of the bitmap sometimes (more evident with Aline). 
+* the stroke is out of the bitmap sometimes (more evident with Aline).
 *
 
 ## Improvements
 
-* add an option to cut corners of a `shape._line()` at any angle (usefull with stars, polygons... ) 
-* 
+* add an option to cut corners of a `shape._line()` at any angle (usefull with stars, polygons... ).
+* auto-write = False behavior.
+* reduce memory use with lots of pixels and/or big strokes.
+*
+
