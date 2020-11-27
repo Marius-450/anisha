@@ -54,8 +54,8 @@ rect = anisha.Arect(x, y,  width, height, fill=None, outline=None, stroke=1, ani
     :param fill: The color to fill the rectangle. Can be a hex value for a color or
                  ``None`` for transparent.
     :param outline: The outline of the rectangle. Must be a hex value for a color.
-    :param stroke: Thickness of the lines drawn, in pixels. Will not change the outer bound size set by ``width`` and
-                   ``height``.
+    :param stroke: Thickness of the lines drawn, in pixels. Will not change the outer bound size set by ``width`` 
+                    and ``height``.
     :param anim_mode : "vertical", "horizontal" or "circular". default "circular"
     :param colors : Number of colors used in the bitmap and palette. default 128
 ```
@@ -103,13 +103,14 @@ triangle = anisha.Atriangle(x0, y0, x1, y1, x2, y2, outline=None, colors=128, st
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param stroke: Thickness of the lines drawn, in pixels
 ```
-<img src="https://raw.githubusercontent.com/Marius-450/screenshots/master/Circle_arc_ellipse.png" width="300" align="right">
+<img src="https://raw.githubusercontent.com/Marius-450/screenshots/master/Circle_arc_ellipse.png" width="270" align="right">
 
 ## Aellipse
 
 Aellipse is an animated ellipse shape class. It can also be used to draw arcs and circles.  
 It is a serie of `steps` lines, so it can also be a more or less regular polygon.  
 If R == r, it draws a circle, or a circle arc.  
+
 
 ```
 ellipse = anisha.Aellipse( x, y, R, r, start_angle = 0, end_angle = 360, angle_offset = 0, 
@@ -190,14 +191,17 @@ egg = anisha.Aegg(x, y, sides, R, r, start_angle=0, end_angle=360, angle_offset=
 Aheart is an animated heart shape class. The result is sometimes surprising. Using odd values for `height` parameter (that will also be the width) is more symetric. Approximative minimum height : 13. Below this, the shape is barely a heart. You can fine tune the steps to have better results than with computed one
 
 ```
-heart = anisha.Aheart(x, y, height, start_angle=0, end_angle=360, angle_offset=0, outline=None, colors=128, steps=None, stroke=1)
+heart = anisha.Aheart(x, y, height, start_angle=0, end_angle=360, angle_offset=0, 
+                        outline=None, colors=128, steps=None, stroke=1
+                        )
 
     :param x: x coordinate of the center of the heart.
     :param y: y coordinate of the center of the heart.
     :param height: Height in pixels. will also be the width.
     :param start_angle: In degrees, clockwise. default = 0.
     :param end_angle: In degrees. must be greater than start_angle. default = 360.
-    :param angle_offset : Angle in degrees to rotate the shape counter-clockwise. default = 0 = pointing South
+    :param angle_offset : Angle in degrees to rotate the shape counter-clockwise. 
+                            default = 0 = pointing South
     :param outline: The outline of the heart. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param steps:  Number of lines to draw. If None, computed to be roundish.
@@ -214,7 +218,8 @@ star = anisha.Aheart(x, y, points, radius, jump=2, angle_offset=0, outline=None,
     :param points: Number of points to the star.
     :param radius: Radius of the circle in wich the star is inscribed. in pixels.
     :param jump: 
-    :param angle_offset : Angle in degrees to rotate the star counter-clockwise. default = 0 = first point points toward North
+    :param angle_offset : Angle in degrees to rotate the star counter-clockwise. 
+                            default = 0 = first point points toward North
     :param outline: The outline of the heart. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param stroke: Thickness of the lines drawn, in pixels
