@@ -42,14 +42,20 @@ class Ashape(displayio.TileGrid):
         Fills the animated pixels with the given color.
         :param color: Color to set.
         """
-        self._palette[1] = color
+        if color == 0x0 or color == (0,0,0):
+            palette_index = 0
+        elif color == self._palette[1]:
+            palette_index = 1
+        else:
+            self._palette[2] = color
+            palette_index = 2
         for index, points in enumerate(self._conversion_table):
             for p in points:
                 x = p[0]
                 y = p[1]
-                self._bitmap[x,y] = 1
+                self._bitmap[x,y] = palette_index
 
-        for i in range(2,len(self._palette)):
+        for i in range(3,len(self._palette)):
             self._palette[i] = 0x000000
 
 
@@ -71,8 +77,6 @@ class Ashape(displayio.TileGrid):
                 self._clean_palette()
                 cindex = self._palette_index(0,2)
             if cindex == -1:
-                #for i in range(0,len(self._palette)):
-                    # print(i , " : ", self._palette[i])
                 raise RuntimeError("no more color available")
             self._palette[cindex] = color
         # set the pixels to the cindex value
@@ -126,9 +130,7 @@ class Ashape(displayio.TileGrid):
         return -1
 
     def _getitem(self, index):
-        #print('getitem index :', index, ":", self._conversion_table[index][0])
-        #print(self._bitmap.height, self._bitmap.width)
-        r,g,b,w = self._parse_color( self._bitmap[self._conversion_table[index][0]])
+        r,g,b,w = self._parse_color( self._palette[self._bitmap[self._conversion_table[index][0]]])
         return (r,g,b)
 
     def __getitem__(self, index):
@@ -144,13 +146,12 @@ class Ashape(displayio.TileGrid):
         return self._getitem(index)
 
     def _clean_palette(self):
-        pixels = [0] * len(self._palette)
-        for x in range(self.width):
-            for y in range(self.height):
-                pixels[self._bitmap[x,y]] += 1
+        pixels = self[:]
         for i in range(2,len(self._palette)):
-            if pixels[i] == 0:
-                self._palette[i] = 0x000000
+            r, g, b, w =  self._parse_color(self._palette[i])
+            if (r,g,b) in pixels:
+                continue
+            self._palette[i] = 0x000000
 
     def _add_pixel(self,x,y,position=None):
         if position is None:
@@ -335,7 +336,6 @@ class Apoly(Ashape):
         self._bitmap = displayio.Bitmap(self.width, self.height, colors)
 
         if outline is not None:
-            # print("outline")
             self.outline = outline
             self._palette[1] = outline
             for index, _ in enumerate(points):
@@ -628,6 +628,43 @@ class Astar(Aellipse):
               self._bitmap, pixel_shader=self._palette, x=x_offset, y=y_offset
              )
 
+class Asinwave(Ashape):
+    """An animated sin wave.
+    :param x: The x-position of the top left corner.
+    :param y: The y-position of the top left corner.
+    :param width: The width of the area.
+    :param height: The height of the area.
+    :param phase: Number of phases to draw.
+    :param outline: The color of the wave. Must be a hex value for a color.
+    :param stroke: Thickness of the lines or points drawn, in pixels.
+    :param colors : Number of colors used in the bitmap and palette. default 128.
+    :param lines: When set to True, draw lines between points. default = False.
+    """
+    def __init__(self, x, y, width, height, *, phase=1, outline=None, stroke=1, colors=128, lines=False):
+        super().__init__(x, y, width, height, outline=outline, stroke=stroke, colors=colors)
+        
+        self.phase = phase
+        p = 0
+        for ax, ay in self._compute_line(0,0,width-1,0):
+            ay = self._plotter(ax) 
+            by = ay * ((height-self.stroke)/2) * -1 + ((height-self.stroke)/2)
+            by = int(round(by))
+            if lines:
+                if p > 0:
+                    self._line(zx,zy,ax,by,1)
+                zx, zy = ax, by
+                p += 1
+            else:
+                for i in range(0,self.stroke):
+                    if i == 0:
+                        pos = self._add_pixel(ax,by)
+                    else:
+                        self._add_pixel(ax,by+i,position=pos)
+        self.fill(outline)
+    
+    def _plotter(self, x):
+        x = x * ((self.phase*2*math.pi)/(self.width-1))
+        return math.sin(x)
 
 
 # TODO : arcs (?) piecharts (?)
