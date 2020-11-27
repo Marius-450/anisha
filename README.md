@@ -36,7 +36,8 @@ You can setup a new animation or animate the shape directly from your code witho
 * `stroke` parameter sets the thickness of the lines drawn.
 * `outline` is the color of the outine of the shape. Mandatory (but it may change in the future). 
 
-# Arect
+# Classes
+## Arect
 
 Arect is an animated rectangle shape class. 
 3 animation modes are available : ` circular ` mode animates only the outline, `horizontal` and `vertical` modes animates the whole rectangle.
@@ -59,7 +60,7 @@ rect = anisha.Arect(x, y,  width, height, fill=None, outline=None, stroke=1, ani
     :param colors : Number of colors used in the bitmap and palette. default 128
 ```
 
-# Apoly
+## Apoly
 
 Apoly is an animated polygon shape class. It is the base class for triangles, lines, broken lines etc, but it can also be used as-it.
 
@@ -74,7 +75,7 @@ polygon = anisha.Apoly(points, outline=None, colors=128, closed=True, stroke=1)
 ```
 
 
-# Aline
+## Aline
 
 Aline is an animated line class. It is an "open polygon" with only 2 points.
 
@@ -88,7 +89,7 @@ line = anisha.Aline(x0, y0, x1, y1, outline=None, colors=128, stroke=1)
     :param stroke: Thickness of the lines drawn, in pixels
 ```
 
-# Atriangle
+## Atriangle
 
 Atriangle is an animated triangle shape class.
 
@@ -104,7 +105,7 @@ triangle = anisha.Atriangle(x0, y0, x1, y1, x2, y2, outline=None, colors=128, st
 ```
 <img src="https://raw.githubusercontent.com/Marius-450/screenshots/master/Circle_arc_ellipse.png" width="300" align="right">
 
-# Aellipse
+## Aellipse
 
 Aellipse is an animated ellipse shape class. It can also be used to draw arcs and circles.  
 It is a serie of `steps` lines, so it can also be a more or less regular polygon.  
@@ -128,7 +129,7 @@ ellipse = anisha.Aellipse( x, y, R, r, start_angle = 0, end_angle = 360, angle_o
 ```
 
 
-# Acircle
+## Acircle
 
 Acircle is an animated circle shape class.
 
@@ -166,7 +167,7 @@ poly = anisha.Aregularpoly(x, y, sides, radius, angle_offset=0, outline=None, co
 ```
 
 
-# Aegg
+## Aegg
 
 Aegg is an animated egg shape class.
 
@@ -185,7 +186,7 @@ egg = anisha.Aegg(x, y, sides, R, r, start_angle=0, end_angle=360, angle_offset=
     :param stroke: Thickness of the lines drawn, in pixels
 ```
 
-# Aheart
+## Aheart
 Aheart is an animated heart shape class. The result is sometimes surprising. Using odd values for `height` parameter (that will also be the width) is more symetric. Approximative minimum height : 13. Below this, the shape is barely a heart. You can fine tune the steps to have better results than with computed one
 
 ```
@@ -203,7 +204,7 @@ heart = anisha.Aheart(x, y, height, start_angle=0, end_angle=360, angle_offset=0
     :param stroke: Thickness of the lines drawn, in pixels
 ```
 
-# Astar
+## Astar
 Astar is an animated star shape class.
 ```
 star = anisha.Aheart(x, y, points, radius, jump=2, angle_offset=0, outline=None, colors=128, stroke=1)
@@ -219,7 +220,7 @@ star = anisha.Aheart(x, y, points, radius, jump=2, angle_offset=0, outline=None,
     :param stroke: Thickness of the lines drawn, in pixels
 ```
 
-# Ashape
+## Ashape
 Ashape is the meta-class for animated shapes. Can be used as-it to draw a shape directly from code.py for example.
 
 ```
@@ -234,6 +235,35 @@ shape = anisha.Ashape(x, y, width, height, outline=None, colors=128, stroke=1)
     :param stroke: Thickness of the lines drawn, in pixels
 ```
 
+
+## Schema
+
+```
+Ashape
+    |
+    |- Arect
+    |
+    |- Apoly
+    |   |
+    |   |- Atriangle
+    |   |
+    |   |- Aline
+    |
+    |- Aellipse
+    |   |
+    |   |- Acircle
+    |   |   |
+    |   |   |- Aregularpoly
+    |   |
+    |   |- Aegg
+    |   |
+    |   |- Aheart
+    |   |
+    |   |- Astar
+    |
+    |- Asinwave (coming soon)
+```
+
 # TODO
 
 ## More shapes
@@ -241,7 +271,7 @@ shape = anisha.Ashape(x, y, width, height, outline=None, colors=128, stroke=1)
 * just points
 * arcs (already available via Aellipse)
 * piechart (usefullness ?)
-* sin wave (well ... x/y plotter, with the function in a helper method...)
+* sin wave (well ... x/y plotter, with the function in a helper method...) *work in progress*
 
 ## Bugs
 
