@@ -149,7 +149,7 @@ circle = anisha.Acircle(x, y, radius, angle_offset=0, outline=None, colors=128, 
 
 Under the hood, the circle is a regular polygon of `steps` sides. When `steps` is ommited (or set to `None`), the number of steps is computed automatically. Sometimes,  if the circle drawn is not perfectly round, you can ajust manually the `steps` parameter. Experiments shows only multiples of 4 draws symetric circles (but not always).
 
-# Aregularpoly
+## Aregularpoly
 
 Aregularpoly is an animated regular polygon shape class.
 
