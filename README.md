@@ -234,4 +234,21 @@ shape = anisha.Ashape(x, y, width, height, outline=None, colors=128, stroke=1)
     :param stroke: Thickness of the lines drawn, in pixels
 ```
 
+# TODO
 
+## More shapes
+
+* just points
+* arcs (already available via Aellipse)
+* piechart (usefullness ?)
+* sin wave (well ... x/y plotter, with the function in a helper method...)
+
+## Bugs
+
+* the stroke is out of the bitmap sometimes (more evident with Aline). 
+*
+
+## Improvements
+
+* add an option to cut corners of a `shape._line()` at any angle (usefull with stars, polygons... ) 
+* 
