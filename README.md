@@ -225,6 +225,24 @@ star = anisha.Aheart(x, y, points, radius, jump=2, angle_offset=0, outline=None,
     :param stroke: Thickness of the lines drawn, in pixels
 ```
 
+## Asinwave
+
+Asinwave is an animated sin() wave class.
+
+```
+wave = anisha.Asinwave(x, y, width, height, phase=1, outline=None, stroke=1, colors=128, lines=False)
+
+    :param x: The x-position of the top left corner.
+    :param y: The y-position of the top left corner.
+    :param width: The width of the area.
+    :param height: The height of the area.
+    :param phase: Number of phases to draw.
+    :param outline: The color of the wave. Must be a hex value for a color.
+    :param stroke: Thickness of the lines or points drawn, in pixels.
+    :param colors : Number of colors used in the bitmap and palette. default 128.
+    :param lines: When set to True, draw lines between points. default = False.
+```
+
 ## Ashape
 Ashape is the meta-class for animated shapes. Can be used as-it to draw a shape directly from code.py for example.
 
@@ -276,17 +294,14 @@ Ashape
 * just points
 * arcs (already available via Aellipse)
 * piechart (usefullness ?)
-* sin wave (well ... x/y plotter, with the function in a helper method...) *work in progress*
 
 ## Bugs
 
 * the stroke is out of the bitmap sometimes (more evident with Aline).
-*
 
 ## Improvements
 
 * add an option to cut corners of a `shape._line()` at any angle (usefull with stars, polygons... ).
-* auto-write = False behavior.
+* `auto-write = False` behavior.
 * reduce memory use with lots of pixels and/or big strokes.
-*
 
