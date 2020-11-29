@@ -284,7 +284,7 @@ Ashape
     |   |
     |   |- Astar
     |
-    |- Asinwave (coming soon)
+    |- Asinwave
 ```
 
 # TODO
