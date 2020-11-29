@@ -146,10 +146,11 @@ class Ashape(displayio.TileGrid):
         return self._getitem(index)
 
     def _clean_palette(self):
-        pixels = self[:]
+        pixels = set()
+        for j in self._conversion_table:
+            pixels.add(self._bitmap[j[0]])
         for i in range(2,len(self._palette)):
-            r, g, b, w =  self._parse_color(self._palette[i])
-            if (r,g,b) in pixels:
+            if i in pixels:
                 continue
             self._palette[i] = 0x000000
 
