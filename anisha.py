@@ -667,7 +667,34 @@ class Asinwave(Ashape):
         x = x * ((self.phase*2*math.pi)/(self.width-1))
         return math.sin(x)
 
+class Apoints(Ashape):
 
+    def __init__(self, points, *, outline=None, size=1, colors=128):
+        self.size = size
+        self.closed = False
+        xs = []
+        ys = []
+        for point in points:
+            xs.append(point[0])
+            ys.append(point[1])
+
+        x_offset = min(xs)
+        y_offset = min(ys)
+
+        # Find the largest and smallest X values to figure out width for bitmap
+        self.width = max(xs) - x_offset + self.size
+        self.height = max(ys) - y_offset + self.size
+
+        super().__init__(x_offset,y_offset,self.width,self.height, outline=outline, stroke=1, colors=colors)
+
+        for point in points:
+            print(point)
+            for i in range(size):
+                for j in range(size):
+                    self._bitmap[point[0]+i-x_offset, point[1]+j-y_offset] = 1
+                    if i == 0 and j == 0:
+                        pos = self._add_pixel(point[0]-x_offset, point[1]-y_offset)
+                    else:
+                        self._add_pixel(point[0]+i-x_offset, point[1]+j-y_offset, pos)
+        
 # TODO : arcs (?) piecharts (?)
-#        points
-#        sin waves
