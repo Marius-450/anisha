@@ -25,7 +25,7 @@ Thanks to Adafruit for making this possible.
 You can setup a new animation or animate the shape directly from your code without using led_animation :
 * `shape.fill(color)` set all animated pixels of the shape to the color given in hex format, ex : `0xFF0000`
 * `shape[pos] = color` set the pixels at `pos` to the color given in hex format, ex : `0xFF0000`, individually or using a slice.
-* `shape._add_pixel(x,y,position=pos)` add x and y coordinates to the `shape._conversion_table` list. If `position` is ommited or greater than the pixel list length, it add a new point and increase `shape.n`. If `position` exists, it add the coordinates to this point. It checks for duplicates coordinages before adding it and return the position.
+* `shape._add_pixel(x,y,position=pos)` add x and y coordinates to the `shape._conversion_table` list. If `position` is ommited or greater than the pixel list length, it add a new point and increase `shape.n`. If `position` exists, it add the coordinates to this point. It checks for duplicates coordinates before adding it and return the position.
 * `shape._line(x0,y0,x1,y1,color_index)` draw a line from x0,y0 to x1,y1 with the color_index, using `self.stroke`, and populate `shape._conversion_table` accordingly
 * `shape._conversion_table` is a list of lists of coordinates. Each "pixel" can have multiple coordinates, wich permit lines with stroke > 1. It can be irregular, point 0 can have 10 coordinates while point 1 have only one.
 * `shape.n` is the number of pixels (each one refering to one or many physical pixels of the display)
@@ -304,8 +304,8 @@ Ashape
     |   |- Acircle
     |   |   |
     |   |   |- Aregularpoly
-	|	|	
-	|	|- Aarc
+    |	|	
+    |	|- Aarc
     |   |
     |   |- Aegg
     |   |
@@ -314,16 +314,17 @@ Ashape
     |   |- Astar
     |
     |- Asinwave
-	|
-	|- Apoints
+    |
+    |- Apoints
 ```
 
 # TODO
 
-## More shapes
+## Add examples
 
-* arc from x0, y0 to x1,y1 with radius r.
 * piechart as an example of custom shape
+* examples for : Apoints, Astar, etc.
+* a full demo for matrixportal and boards with built-in display
 
 ## Bugs
 
@@ -334,4 +335,4 @@ Ashape
 * add an option to cut corners of a `shape._line()` at any angle (usefull with stars, polygons... ).
 * `auto-write = False` behavior.
 * reduce memory use with lots of pixels and/or big strokes.
-
+* fusion 2 shapes in one.
