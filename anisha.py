@@ -193,7 +193,7 @@ class Ashape(displayio.TileGrid):
                 bx = int(round(bx))
                 by = int(round(by))
                 for tx,ty in self._compute_line(ax,ay,bx,by):
-                    try: 
+                    try:
                         self._bitmap[tx,ty] = color
                     except IndexError:
                         print('indexerror : ',tx,ty)
@@ -243,7 +243,7 @@ class Ashape(displayio.TileGrid):
                         yield((y0, x))
                     else:
                         yield((x, y0))
-                    err = err - dy 
+                    err = err - dy
                     if err < 0:
                         y0 -= ystep
                         err += dx
@@ -256,6 +256,52 @@ class Ashape(displayio.TileGrid):
                     if err < 0:
                         y0 -= ystep
                         err += dx
+
+    def _adjust_bitmap(self):
+        """
+        helper function to reduce bitmap size and translate everything accordingly.
+        Due to the stroke parameter, sometimes the best size for the bitmap is hard
+        to compute beforehand. this function is memory intensive, but in the end, more
+        memory is cleared than used.
+        """
+        min_x = self._bitmap.width
+        min_y = self._bitmap.height
+        max_x = 0
+        max_y = 0
+        for i in range(self._bitmap.height):
+            for j in range(self._bitmap.width):
+                if self._bitmap[j,i] > 0:
+                    if j > max_x:
+                        max_x = j
+                    if j < min_x:
+                        min_x = j
+                    if i > max_y:
+                        max_y = i
+                    if i < min_y:
+                        min_y = i
+        new_height = max_y - min_y +1
+        new_width = max_x - min_x +1
+        gc.collect()
+        if new_height == self._bitmap.height and new_width == self._bitmap.width:
+            return (0,0)
+
+        bitmap = displayio.Bitmap(new_width, new_height, len(self._palette))
+        #for i in range(min_y,max_y+1):
+        #    for j in range(min_x,max_x+1):
+        #        if self._bitmap[j,i] > 0:
+        #            bitmap[j- min_x, i- min_y] = self._bitmap[j,i]
+        self._bitmap = bitmap
+        self.width = self._bitmap.width
+        self.height = self._bitmap.height
+        for index, points in enumerate(self._conversion_table):
+            coords = []
+            for p in points:
+                coords.append((p[0]-min_x,p[1]-min_y))
+            self._conversion_table[index] = coords[:]
+        gc.collect()
+        self.fill(self._palette[1])
+        return (min_x, min_y)
+
 
 class Arect(Ashape):
     """An animated rectangle.
@@ -273,7 +319,7 @@ class Arect(Ashape):
     """
     def __init__(self, x, y, width, height, *, fill=None, outline=None, stroke=1, anim_mode="circular", colors=128):
         super().__init__(x, y, width, height, outline=outline, stroke=stroke, colors=colors)
-        
+
         self.anim_mode=anim_mode
         if fill is not None:
             self._palette[0] = fill
@@ -305,8 +351,6 @@ class Arect(Ashape):
             raise RuntimeError('anime mode not recognised')
 
 
-        
-
 class Apoly(Ashape):
     """An animated polygon.
     :param points: A list of (x, y) tuples of the points
@@ -325,17 +369,16 @@ class Apoly(Ashape):
             xs.append(point[0])
             ys.append(point[1])
 
-        x_offset = min(xs)
-        y_offset = min(ys)
+        x_offset = min(xs) - self.stroke
+        y_offset = min(ys) - self.stroke
 
         # Find the largest and smallest X values to figure out width for bitmap
-        self.width = max(xs) - min(xs) + self.stroke
-        self.height = max(ys) - min(ys) + self.stroke
+        self.width = max(xs) - min(xs) + 1 + self.stroke *2
+        self.height = max(ys) - min(ys) + 1 + self.stroke *2
 
         self._palette = displayio.Palette(colors)
         self._palette.make_transparent(0)
         self._bitmap = displayio.Bitmap(self.width, self.height, colors)
-
         if outline is not None:
             self.outline = outline
             self._palette[1] = outline
@@ -357,8 +400,9 @@ class Apoly(Ashape):
             self.n = len(self._conversion_table)
         else:
             raise RuntimeError("base color must be provided for outline.")
+        x_new_offset, y_new_offset = self._adjust_bitmap()
         super(Ashape, self).__init__(
-            self._bitmap, pixel_shader=self._palette, x=x_offset, y=y_offset
+            self._bitmap, pixel_shader=self._palette, x=x_offset+x_new_offset, y=y_offset+y_new_offset
         )
 
 
@@ -412,7 +456,7 @@ class Aellipse(Ashape):
         self.height = r*2
         self._palette = displayio.Palette(colors)
         self._palette.make_transparent(0)
-        max_size = int(round(max(self.width, self.height)))
+        max_size = int(round(max(self.width, self.height)))+self.stroke*2
         # temporarily oversized
         self._bitmap = displayio.Bitmap(max_size, max_size, colors)
 
@@ -421,15 +465,15 @@ class Aellipse(Ashape):
 
         self._conversion_table = []
 
-        x_offset = x - (max_size-1)//2
-        y_offset = y - (max_size-1)//2
+        x_offset = x - (max_size-1)//2 + self.stroke
+        y_offset = y - (max_size-1)//2 + self.stroke
 
         if outline is not None:
             if steps is None:
                 mean = int((r + R)/2)
                 if mean > 9:
                     frac = (end_angle - start_angle)/360
-                    steps = int(min(3 + (mean+1) / 4.0, 12.0) * frac) * 4
+                    steps = int(min(3 + (mean+1) / 4.0, 12.0)) * 4
                 else:
                     if mean == 5:
                         steps = 20
@@ -443,7 +487,7 @@ class Aellipse(Ashape):
                         steps = 44
                     else:
                         steps = 20
-            step = 360 / steps
+            step = (end_angle - start_angle) / steps
             theta = start_angle
             off_r = math.radians(angle_offset)
             self._palette[1] = outline
@@ -464,28 +508,7 @@ class Aellipse(Ashape):
         else:
             raise RuntimeError("base color must be provided for outline.")
         self.n = len(self._conversion_table)
-
-        x_new_offset = min(xs)
-        y_new_offset = min(ys)
-
-        # Find the largest and smallest X and Y values to figure out width and height for the bitmap
-        used_width = max(xs) - min(xs) + 1
-        used_height = max(ys) - min(ys) + 1
-
-        # Resize bitmap if needed.
-        if used_width != max_size or used_height != max_size:
-            new_bitmap = displayio.Bitmap(used_width, used_height, colors)
-            for px in range(max_size):
-                for py in range(max_size):
-                    if self._bitmap[px,py] == 1:
-                        new_bitmap[px - x_new_offset, py - y_new_offset] = 1
-            for pos, points in enumerate(self._conversion_table):
-                l = []
-                for p in points:
-                    l.append((p[0]-x_new_offset,p[1]-y_new_offset))
-                self._conversion_table[pos] = l
-            self._bitmap = new_bitmap
-        gc.collect()
+        x_new_offset, y_new_offset = self._adjust_bitmap()
         super(Ashape, self).__init__(
             self._bitmap, pixel_shader=self._palette, x=x_offset+x_new_offset, y=y_offset+y_new_offset
         )
@@ -509,6 +532,41 @@ class Acircle(Aellipse):
     """
     def __init__(self, x, y, radius, *, angle_offset=0, outline=None, colors=128, steps=None, stroke=1):
         super().__init__(x, y, radius, radius, angle_offset=angle_offset, outline=outline, colors=colors, steps=steps, stroke=stroke)
+
+class Aarc(Aellipse):
+    """An animated circlular segment.
+    :param x0: x coordinate of the first point.
+    :param y0: y coordinate of the first point.
+    :param x1: x coordinate of the second point.
+    :param y1: y coordinate of the second point.
+    :param radius: radius of the circle in pixels.
+    :param outline: The outline of the circle. Must be a hex value for a color.
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    :param steps: Number of lines to draw. If None, computed to be roundish.
+    """
+    def __init__(self, x0, y0, x1, y1, radius, *, outline=None, colors=128, stroke=1, steps=None):
+        x2 = (x0 + x1)/2
+        y2 = (y0 + y1)/2
+        q = math.sqrt((x1-x0)**2+(y1-y0)**2)
+        if radius < q/2:
+            radius = q/2
+            print("WARNING. A circle of that radius can't reach those points")
+            print("radius set automatically at", radius)
+        r2 = radius**2
+        # return x3 + Math.Sqrt(radsq - ((q / 2) * (q / 2))) * ((y1 - y2) / q);
+        # return y3 + Math.Sqrt(radsq - ((q / 2) * (q / 2))) * ((x2-x1) / q);
+        x= x2 + math.sqrt(r2 - (q/2)**2) * ((y0 - y1) / q)
+        y= y2 + math.sqrt(r2 - (q/2)**2) * ((x1 - x0) / q)
+        angle_offset= 0
+        #start_angle=(180+math.degrees(math.atan2(y-y0,x-x0)))%360
+        start_angle = math.degrees(math.atan2(y0-y,x0-x))%360
+        end_angle=math.degrees(math.atan2(y1-y,x1-x))
+        while end_angle < start_angle:
+            end_angle += 360
+        print(x, y, radius, angle_offset, start_angle, end_angle)
+        super().__init__(int(x), int(y), radius, radius, angle_offset=angle_offset, start_angle=start_angle,
+                         end_angle=end_angle, outline=outline, colors=colors, stroke=stroke, steps=steps
+        )
 
 class Aregularpoly(Acircle):
     """An animated regular polygon.
@@ -549,7 +607,7 @@ class Aegg(Aellipse):
         return (ax, ay)
 
 class Aheart(Aellipse):
-    """An animated heart 
+    """An animated heart
     :param x: x coordinate of the center of the heart.
     :param y: y coordinate of the center of the heart.
     :param height: height in pixels. will also be the width.
@@ -578,7 +636,7 @@ class Astar(Aellipse):
     :param y: y coordinate of the center of the star.
     :param points: number of points of the star.
     :param radius: radius in pixel.
-    :param angle_offset : angle in degrees to rotate the shape counter-clockwise. 
+    :param angle_offset : angle in degrees to rotate the shape counter-clockwise.
                           default = 0 = first point pointing East.
     :param outline: The outline of the heart. Must be a hex value for a color.
     :param colors: Number of colors used in the bitmap and palette. default 128.
@@ -622,7 +680,7 @@ class Astar(Aellipse):
                 self._line(point_list[a][0], point_list[a][1], point_list[b][0], point_list[b][1], 1)
         else:
             raise RuntimeError("base color must be provided for outline.")
-        self.n = len(self._conversion_table) 
+        self.n = len(self._conversion_table)
         x_offset = x - radius
         y_offset = y - radius
         super(Ashape, self).__init__(
@@ -643,11 +701,11 @@ class Asinwave(Ashape):
     """
     def __init__(self, x, y, width, height, *, phase=1, outline=None, stroke=1, colors=128, lines=False):
         super().__init__(x, y, width, height, outline=outline, stroke=stroke, colors=colors)
-        
+
         self.phase = phase
         p = 0
         for ax, ay in self._compute_line(0,0,width-1,0):
-            ay = self._plotter(ax) 
+            ay = self._plotter(ax)
             by = ay * ((height-self.stroke)/2) * -1 + ((height-self.stroke)/2)
             by = int(round(by))
             if lines:
@@ -662,13 +720,18 @@ class Asinwave(Ashape):
                     else:
                         self._add_pixel(ax,by+i,position=pos)
         self.fill(outline)
-    
+
     def _plotter(self, x):
         x = x * ((self.phase*2*math.pi)/(self.width-1))
         return math.sin(x)
 
 class Apoints(Ashape):
-
+    """An animated cloud of points.
+    :param points: A list of (x, y) tuples of the points.
+    :param outline: The color of the points. Must be a hex value for a color or a 3 values tuple.
+    :param size : size of the points. 2 means a 2x2 pixels square. default 1.
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    """
     def __init__(self, points, *, outline=None, size=1, colors=128):
         self.size = size
         self.closed = False
@@ -688,7 +751,6 @@ class Apoints(Ashape):
         super().__init__(x_offset,y_offset,self.width,self.height, outline=outline, stroke=1, colors=colors)
 
         for point in points:
-            print(point)
             for i in range(size):
                 for j in range(size):
                     self._bitmap[point[0]+i-x_offset, point[1]+j-y_offset] = 1
@@ -696,5 +758,5 @@ class Apoints(Ashape):
                         pos = self._add_pixel(point[0]-x_offset, point[1]-y_offset)
                     else:
                         self._add_pixel(point[0]+i-x_offset, point[1]+j-y_offset, pos)
-        
+
 # TODO : arcs (?) piecharts (?)

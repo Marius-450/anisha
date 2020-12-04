@@ -243,6 +243,33 @@ wave = anisha.Asinwave(x, y, width, height, phase=1, outline=None, stroke=1, col
     :param lines: When set to True, draw lines between points. default = False.
 ```
 
+## Apoints
+Apoints is an animated clound of points class.
+```
+cloud = anisha.Apoints(points, outline=None, size=1, colors=128)
+
+    :param points: A list of (x, y) tuples of the points.
+    :param outline: The color of the points. Must be a hex value for a color or a 3 values tuple.
+    :param size : size of the points. 2 means a 2x2 pixels square. default 1.    
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+```
+
+## Aarc
+Aarc is an animated circlular segment class.
+```
+arc = anisha.Aarc(x0, y0, x1, y1, radius, outline=None, colors=128, stroke=1, steps=None)
+
+    :param x0: x coordinate of the first point.
+    :param y0: y coordinate of the first point.
+    :param x1: x coordinate of the second point.
+    :param y1: y coordinate of the second point.
+    :param radius: radius of the circle in pixels.
+    :param outline: The outline of the circle. Must be a hex value for a color.
+    :param colors: Number of colors used in the bitmap and palette. default 128.
+    :param steps: Number of lines to draw. If None, computed to be roundish.
+```
+
+
 ## Ashape
 Ashape is the meta-class for animated shapes. Can be used as-it to draw a shape directly from code.py for example.
 
@@ -277,6 +304,8 @@ Ashape
     |   |- Acircle
     |   |   |
     |   |   |- Aregularpoly
+	|	|	
+	|	|- Aarc
     |   |
     |   |- Aegg
     |   |
@@ -285,19 +314,20 @@ Ashape
     |   |- Astar
     |
     |- Asinwave
+	|
+	|- Apoints
 ```
 
 # TODO
 
 ## More shapes
 
-* just points
-* arcs (already available via Aellipse)
-* piechart (usefullness ?)
+* arc from x0, y0 to x1,y1 with radius r.
+* piechart as an example of custom shape
 
 ## Bugs
 
-* the stroke is out of the bitmap sometimes (more evident with Aline).
+* at some angles, lines are not filled (need a 2nd row in stroke drawing). more visible in 45° lines.
 
 ## Improvements
 
