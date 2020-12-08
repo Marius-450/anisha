@@ -45,7 +45,8 @@ Arect is an animated rectangle shape class.
 [Watch a demo on Youtube](https://www.youtube.com/watch?v=5NWonUOjqoQ)
 
 ```
-rect = anisha.Arect(x, y,  width, height, fill=None, outline=None, stroke=1, anim_mode="circular", colors=128)
+rect = anisha.Arect(x, y,  width, height, fill=None, outline=None, stroke=1, 
+                    anim_mode="circular", colors=128)
     
     :param x: The x-position of the top left corner.
     :param y: The y-position of the top left corner.
@@ -54,8 +55,8 @@ rect = anisha.Arect(x, y,  width, height, fill=None, outline=None, stroke=1, ani
     :param fill: The color to fill the rectangle. Can be a hex value for a color or
                  ``None`` for transparent.
     :param outline: The outline of the rectangle. Must be a hex value for a color.
-    :param stroke: Thickness of the lines drawn, in pixels. Will not change the outer bound size set by ``width`` 
-                    and ``height``.
+    :param stroke: Thickness of the lines drawn, in pixels. Will not change the outer 
+                    bound size set by ``width`` and ``height``.
     :param anim_mode : "vertical", "horizontal" or "circular". default "circular"
     :param colors : Number of colors used in the bitmap and palette. default 128
 ```
@@ -122,7 +123,8 @@ ellipse = anisha.Aellipse( x, y, R, r, start_angle = 0, end_angle = 360, angle_o
     :param r: Smallest radius in pixels.
     :param start_angle: In degrees, clockwise. default = 0. 
     :param end_angle: In degrees. must be greater than start_angle. default = 360.
-    :param angle_offset: Angle in degrees to rotate the shape counter-clockwise. default = 0 = start at East.
+    :param angle_offset: Angle in degrees to rotate the shape counter-clockwise. 
+                         default = 0 = start at East.
     :param outline: The outline of the ellipse. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param steps: Number of lines to draw. If None, computed to be roundish.
@@ -161,8 +163,9 @@ poly = anisha.Aregularpoly(x, y, sides, radius, angle_offset=0, outline=None, co
     :param y: y coordinate of the center of the polygon.
     :param sides: Number of sides of the polygon.
     :param radius: Radius in pixels.
-    :param angle_offset : Angle in degrees to rotate the shape counter-clockwise. default = 0 = start at East.
-    :param outline: The outline of the circle. Must be a hex value for a color or a 3 values tuple.
+    :param angle_offset : Angle in degrees to rotate the shape counter-clockwise. 
+                          default = 0 = start at East.
+    :param outline: The outline of the polygon. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param stroke: Thickness of the lines drawn, in pixels
 ```
@@ -173,7 +176,8 @@ poly = anisha.Aregularpoly(x, y, sides, radius, angle_offset=0, outline=None, co
 Aegg is an animated egg shape class.
 
 ```
-egg = anisha.Aegg(x, y, sides, R, r, start_angle=0, end_angle=360, angle_offset=0, outline=None, colors=128, stroke=1)
+egg = anisha.Aegg(x, y, sides, R, r, start_angle=0, end_angle=360, angle_offset=0, 
+                    outline=None, colors=128, stroke=1)
 
     :param x: x coordinate of the center of the egg.
     :param y: y coordinate of the center of the egg.
@@ -181,7 +185,8 @@ egg = anisha.Aegg(x, y, sides, R, r, start_angle=0, end_angle=360, angle_offset=
     :param r: Smallest radius in pixels.
     :param start_angle: In degrees, clockwise. default = 0.
     :param end_angle: In degrees. must be greater than start_angle. default = 360.
-    :param angle_offset : Angle in degrees to rotate the shape counter-clockwise. default = 0 = pointing North.
+    :param angle_offset : Angle in degrees to rotate the shape counter-clockwise. 
+                          default = 0 = pointing North.
     :param outline: The outline of the egg. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param stroke: Thickness of the lines drawn, in pixels
@@ -220,7 +225,7 @@ star = anisha.Aheart(x, y, points, radius, jump=2, angle_offset=0, outline=None,
     :param jump: 
     :param angle_offset : Angle in degrees to rotate the star counter-clockwise. 
                             default = 0 = first point points toward North
-    :param outline: The outline of the heart. Must be a hex value for a color or a 3 values tuple.
+    :param outline: The outline of the star. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param stroke: Thickness of the lines drawn, in pixels
 ```
@@ -280,7 +285,7 @@ shape = anisha.Ashape(x, y, width, height, outline=None, colors=128, stroke=1)
     :param y: y coordinate of the upper left corner of the shape.
     :param width: Width in pixels.
     :param height: Height in pixels.
-    :param outline: The outline color of the shape. Must be a hex value for a color or a 3 values tuple.
+    :param outline: The color of the shape. Must be a hex value for a color or a 3 values tuple.
     :param colors: Number of colors used in the bitmap and palette. default 128.
     :param stroke: Thickness of the lines drawn, in pixels
 ```
