@@ -12,6 +12,8 @@ Still alpha development version.
 The idea is to animate shapes in a displayio environment, as if it was neopixel stripes. It permits to emulate as many strips you want (limited by the memory available) and test animations without physically having to plug anything else. It can also of course be used to add some life in your programs, like a sparkling frame for a clock or a waiting animation during a request / reload ...
 All the shapes are displayio tilegrids and can be moved, hidden, etc. You just have to add it to a group to display it.
 
+[Watch the christmas demo on Youtube](https://www.youtube.com/watch?v=EQBeo9Za4Iw) (code is in the example directory)
+
 ## Credits
 
 The base code for many shapes comes from [adafruit_display_shapes](https://github.com/adafruit/Adafruit_CircuitPython_Display_Shapes), except for the ellipse that was adapted from [adafruit_circuitpython_turtle lib](https://github.com/adafruit/Adafruit_CircuitPython_turtle).
