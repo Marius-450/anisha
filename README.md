@@ -12,6 +12,8 @@ Still alpha development version.
 The idea is to animate shapes in a displayio environment, as if it was neopixel stripes. It permits to emulate as many strips you want (limited by the memory available) and test animations without physically having to plug anything else. It can also of course be used to add some life in your programs, like a sparkling frame for a clock or a waiting animation during a request / reload ...
 All the shapes are displayio tilegrids and can be moved, hidden, etc. You just have to add it to a group to display it.
 
+[<img src="https://raw.githubusercontent.com/Marius-450/screenshots/master/ChristmasDemo.jpg" width="250" align="left">](https://www.youtube.com/watch?v=EQBeo9Za4Iw)
+
 [Watch the christmas demo on Youtube](https://www.youtube.com/watch?v=EQBeo9Za4Iw) (code is in the example directory)
 
 ## Credits
